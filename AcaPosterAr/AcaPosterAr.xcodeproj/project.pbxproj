@@ -7,52 +7,65 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		00E334CE2DB918FB00ECD3EC /* RealityKitContent in Frameworks */ = {isa = PBXBuildFile; productRef = 00E334CD2DB918FB00ECD3EC /* RealityKitContent */; };
-		0B6583B82DC7929B00223AA8 /* sample.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 0B6583B72DC7929B00223AA8 /* sample.pdf */; };
-		0B6583BA2DC793E300223AA8 /* sample.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 0B6583B92DC793E300223AA8 /* sample.mp4 */; };
+		0B6C5A7B2DCC8C87003E56C8 /* RealityKitContent in Frameworks */ = {isa = PBXBuildFile; productRef = 0B6C5A7A2DCC8C87003E56C8 /* RealityKitContent */; };
+		0B6C5A9F2DCC8DC2003E56C8 /* poster.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 0B6C5A9E2DCC8DC2003E56C8 /* poster.jpg */; };
+		0B6C5AA12DCC8E06003E56C8 /* sample.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 0B6C5AA02DCC8E06003E56C8 /* sample.pdf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		00E334E42DB918FD00ECD3EC /* PBXContainerItemProxy */ = {
+		0B6C5A8E2DCC8C89003E56C8 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 00E334C02DB918FB00ECD3EC /* Project object */;
+			containerPortal = 0B6C5A6D2DCC8C87003E56C8 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 00E334C72DB918FB00ECD3EC;
-			remoteInfo = PosterAR;
+			remoteGlobalIDString = 0B6C5A742DCC8C87003E56C8;
+			remoteInfo = AcaPosterAr;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		00E334C82DB918FB00ECD3EC /* PosterAR.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PosterAR.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		00E334CC2DB918FB00ECD3EC /* RealityKitContent */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = RealityKitContent; sourceTree = "<group>"; };
-		00E334E32DB918FD00ECD3EC /* PosterARTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PosterARTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		0B6583B72DC7929B00223AA8 /* sample.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = sample.pdf; sourceTree = "<group>"; };
-		0B6583B92DC793E300223AA8 /* sample.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = sample.mp4; sourceTree = "<group>"; };
+		0B6C5A752DCC8C87003E56C8 /* AcaPosterAr.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AcaPosterAr.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0B6C5A792DCC8C87003E56C8 /* RealityKitContent */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = RealityKitContent; sourceTree = "<group>"; };
+		0B6C5A8D2DCC8C89003E56C8 /* AcaPosterArTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AcaPosterArTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		0B6C5A9E2DCC8DC2003E56C8 /* poster.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = poster.jpg; sourceTree = "<group>"; };
+		0B6C5AA02DCC8E06003E56C8 /* sample.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = sample.pdf; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		0B6C5A932DCC8C89003E56C8 /* Exceptions for "AcaPosterAr" folder in "AcaPosterAr" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 0B6C5A742DCC8C87003E56C8 /* AcaPosterAr */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		00E334CA2DB918FB00ECD3EC /* PosterAR */ = {
+		0B6C5A772DCC8C87003E56C8 /* AcaPosterAr */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = PosterAR;
+			exceptions = (
+				0B6C5A932DCC8C89003E56C8 /* Exceptions for "AcaPosterAr" folder in "AcaPosterAr" target */,
+			);
+			path = AcaPosterAr;
 			sourceTree = "<group>";
 		};
-		00E334E62DB918FD00ECD3EC /* PosterARTests */ = {
+		0B6C5A902DCC8C89003E56C8 /* AcaPosterArTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = PosterARTests;
+			path = AcaPosterArTests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		00E334C52DB918FB00ECD3EC /* Frameworks */ = {
+		0B6C5A722DCC8C87003E56C8 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				00E334CE2DB918FB00ECD3EC /* RealityKitContent in Frameworks */,
+				0B6C5A7B2DCC8C87003E56C8 /* RealityKitContent in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		00E334E02DB918FD00ECD3EC /* Frameworks */ = {
+		0B6C5A8A2DCC8C89003E56C8 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -62,31 +75,31 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		00E334BF2DB918FB00ECD3EC = {
+		0B6C5A6C2DCC8C87003E56C8 = {
 			isa = PBXGroup;
 			children = (
-				0B6583B92DC793E300223AA8 /* sample.mp4 */,
-				0B6583B72DC7929B00223AA8 /* sample.pdf */,
-				00E334CA2DB918FB00ECD3EC /* PosterAR */,
-				00E334CB2DB918FB00ECD3EC /* Packages */,
-				00E334E62DB918FD00ECD3EC /* PosterARTests */,
-				00E334C92DB918FB00ECD3EC /* Products */,
+				0B6C5AA02DCC8E06003E56C8 /* sample.pdf */,
+				0B6C5A9E2DCC8DC2003E56C8 /* poster.jpg */,
+				0B6C5A772DCC8C87003E56C8 /* AcaPosterAr */,
+				0B6C5A782DCC8C87003E56C8 /* Packages */,
+				0B6C5A902DCC8C89003E56C8 /* AcaPosterArTests */,
+				0B6C5A762DCC8C87003E56C8 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		00E334C92DB918FB00ECD3EC /* Products */ = {
+		0B6C5A762DCC8C87003E56C8 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				00E334C82DB918FB00ECD3EC /* PosterAR.app */,
-				00E334E32DB918FD00ECD3EC /* PosterARTests.xctest */,
+				0B6C5A752DCC8C87003E56C8 /* AcaPosterAr.app */,
+				0B6C5A8D2DCC8C89003E56C8 /* AcaPosterArTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		00E334CB2DB918FB00ECD3EC /* Packages */ = {
+		0B6C5A782DCC8C87003E56C8 /* Packages */ = {
 			isa = PBXGroup;
 			children = (
-				00E334CC2DB918FB00ECD3EC /* RealityKitContent */,
+				0B6C5A792DCC8C87003E56C8 /* RealityKitContent */,
 			);
 			path = Packages;
 			sourceTree = "<group>";
@@ -94,102 +107,102 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		00E334C72DB918FB00ECD3EC /* PosterAR */ = {
+		0B6C5A742DCC8C87003E56C8 /* AcaPosterAr */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 00E334EA2DB918FD00ECD3EC /* Build configuration list for PBXNativeTarget "PosterAR" */;
+			buildConfigurationList = 0B6C5A942DCC8C89003E56C8 /* Build configuration list for PBXNativeTarget "AcaPosterAr" */;
 			buildPhases = (
-				00E334C42DB918FB00ECD3EC /* Sources */,
-				00E334C52DB918FB00ECD3EC /* Frameworks */,
-				00E334C62DB918FB00ECD3EC /* Resources */,
+				0B6C5A712DCC8C87003E56C8 /* Sources */,
+				0B6C5A722DCC8C87003E56C8 /* Frameworks */,
+				0B6C5A732DCC8C87003E56C8 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				00E334CA2DB918FB00ECD3EC /* PosterAR */,
+				0B6C5A772DCC8C87003E56C8 /* AcaPosterAr */,
 			);
-			name = PosterAR;
+			name = AcaPosterAr;
 			packageProductDependencies = (
-				00E334CD2DB918FB00ECD3EC /* RealityKitContent */,
+				0B6C5A7A2DCC8C87003E56C8 /* RealityKitContent */,
 			);
-			productName = PosterAR;
-			productReference = 00E334C82DB918FB00ECD3EC /* PosterAR.app */;
+			productName = AcaPosterAr;
+			productReference = 0B6C5A752DCC8C87003E56C8 /* AcaPosterAr.app */;
 			productType = "com.apple.product-type.application";
 		};
-		00E334E22DB918FD00ECD3EC /* PosterARTests */ = {
+		0B6C5A8C2DCC8C89003E56C8 /* AcaPosterArTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 00E334EF2DB918FD00ECD3EC /* Build configuration list for PBXNativeTarget "PosterARTests" */;
+			buildConfigurationList = 0B6C5A992DCC8C89003E56C8 /* Build configuration list for PBXNativeTarget "AcaPosterArTests" */;
 			buildPhases = (
-				00E334DF2DB918FD00ECD3EC /* Sources */,
-				00E334E02DB918FD00ECD3EC /* Frameworks */,
-				00E334E12DB918FD00ECD3EC /* Resources */,
+				0B6C5A892DCC8C89003E56C8 /* Sources */,
+				0B6C5A8A2DCC8C89003E56C8 /* Frameworks */,
+				0B6C5A8B2DCC8C89003E56C8 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				00E334E52DB918FD00ECD3EC /* PBXTargetDependency */,
+				0B6C5A8F2DCC8C89003E56C8 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				00E334E62DB918FD00ECD3EC /* PosterARTests */,
+				0B6C5A902DCC8C89003E56C8 /* AcaPosterArTests */,
 			);
-			name = PosterARTests;
+			name = AcaPosterArTests;
 			packageProductDependencies = (
 			);
-			productName = PosterARTests;
-			productReference = 00E334E32DB918FD00ECD3EC /* PosterARTests.xctest */;
+			productName = AcaPosterArTests;
+			productReference = 0B6C5A8D2DCC8C89003E56C8 /* AcaPosterArTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		00E334C02DB918FB00ECD3EC /* Project object */ = {
+		0B6C5A6D2DCC8C87003E56C8 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1620;
-				LastUpgradeCheck = 1620;
+				LastSwiftUpdateCheck = 1630;
+				LastUpgradeCheck = 1630;
 				TargetAttributes = {
-					00E334C72DB918FB00ECD3EC = {
-						CreatedOnToolsVersion = 16.2;
+					0B6C5A742DCC8C87003E56C8 = {
+						CreatedOnToolsVersion = 16.3;
 					};
-					00E334E22DB918FD00ECD3EC = {
-						CreatedOnToolsVersion = 16.2;
-						TestTargetID = 00E334C72DB918FB00ECD3EC;
+					0B6C5A8C2DCC8C89003E56C8 = {
+						CreatedOnToolsVersion = 16.3;
+						TestTargetID = 0B6C5A742DCC8C87003E56C8;
 					};
 				};
 			};
-			buildConfigurationList = 00E334C32DB918FB00ECD3EC /* Build configuration list for PBXProject "PosterAR" */;
+			buildConfigurationList = 0B6C5A702DCC8C87003E56C8 /* Build configuration list for PBXProject "AcaPosterAr" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
 			);
-			mainGroup = 00E334BF2DB918FB00ECD3EC;
+			mainGroup = 0B6C5A6C2DCC8C87003E56C8;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
-			productRefGroup = 00E334C92DB918FB00ECD3EC /* Products */;
+			productRefGroup = 0B6C5A762DCC8C87003E56C8 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				00E334C72DB918FB00ECD3EC /* PosterAR */,
-				00E334E22DB918FD00ECD3EC /* PosterARTests */,
+				0B6C5A742DCC8C87003E56C8 /* AcaPosterAr */,
+				0B6C5A8C2DCC8C89003E56C8 /* AcaPosterArTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		00E334C62DB918FB00ECD3EC /* Resources */ = {
+		0B6C5A732DCC8C87003E56C8 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0B6583B82DC7929B00223AA8 /* sample.pdf in Resources */,
-				0B6583BA2DC793E300223AA8 /* sample.mp4 in Resources */,
+				0B6C5AA12DCC8E06003E56C8 /* sample.pdf in Resources */,
+				0B6C5A9F2DCC8DC2003E56C8 /* poster.jpg in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		00E334E12DB918FD00ECD3EC /* Resources */ = {
+		0B6C5A8B2DCC8C89003E56C8 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -199,14 +212,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		00E334C42DB918FB00ECD3EC /* Sources */ = {
+		0B6C5A712DCC8C87003E56C8 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		00E334DF2DB918FD00ECD3EC /* Sources */ = {
+		0B6C5A892DCC8C89003E56C8 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -216,22 +229,21 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		00E334E52DB918FD00ECD3EC /* PBXTargetDependency */ = {
+		0B6C5A8F2DCC8C89003E56C8 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 00E334C72DB918FB00ECD3EC /* PosterAR */;
-			targetProxy = 00E334E42DB918FD00ECD3EC /* PBXContainerItemProxy */;
+			target = 0B6C5A742DCC8C87003E56C8 /* AcaPosterAr */;
+			targetProxy = 0B6C5A8E2DCC8C89003E56C8 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		00E334EB2DB918FD00ECD3EC /* Debug */ = {
+		0B6C5A952DCC8C89003E56C8 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"PosterAR/Preview Content\"";
 				DEVELOPMENT_TEAM = B59U7J2AQF;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -241,7 +253,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = sq.PosterAR;
+				PRODUCT_BUNDLE_IDENTIFIER = apexPro.AcaPosterAr;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "xros xrsimulator";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -250,14 +262,13 @@
 			};
 			name = Debug;
 		};
-		00E334EC2DB918FD00ECD3EC /* Release */ = {
+		0B6C5A962DCC8C89003E56C8 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"PosterAR/Preview Content\"";
 				DEVELOPMENT_TEAM = B59U7J2AQF;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -267,7 +278,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = sq.PosterAR;
+				PRODUCT_BUNDLE_IDENTIFIER = apexPro.AcaPosterAr;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "xros xrsimulator";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -276,7 +287,7 @@
 			};
 			name = Release;
 		};
-		00E334ED2DB918FD00ECD3EC /* Debug */ = {
+		0B6C5A972DCC8C89003E56C8 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -311,6 +322,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = B59U7J2AQF;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -335,11 +347,11 @@
 				SDKROOT = xros;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				XROS_DEPLOYMENT_TARGET = 2.2;
+				XROS_DEPLOYMENT_TARGET = 2.4;
 			};
 			name = Debug;
 		};
-		00E334EE2DB918FD00ECD3EC /* Release */ = {
+		0B6C5A982DCC8C89003E56C8 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -374,6 +386,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = B59U7J2AQF;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -391,74 +404,76 @@
 				SDKROOT = xros;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
-				XROS_DEPLOYMENT_TARGET = 2.2;
+				XROS_DEPLOYMENT_TARGET = 2.4;
 			};
 			name = Release;
 		};
-		00E334F02DB918FD00ECD3EC /* Debug */ = {
+		0B6C5A9A2DCC8C89003E56C8 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = B59U7J2AQF;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = sq.PosterARTests;
+				PRODUCT_BUNDLE_IDENTIFIER = apexPro.AcaPosterArTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "xros xrsimulator";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 7;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PosterAR.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/PosterAR";
-				XROS_DEPLOYMENT_TARGET = 2.2;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AcaPosterAr.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/AcaPosterAr";
+				XROS_DEPLOYMENT_TARGET = 2.4;
 			};
 			name = Debug;
 		};
-		00E334F12DB918FD00ECD3EC /* Release */ = {
+		0B6C5A9B2DCC8C89003E56C8 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = B59U7J2AQF;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = sq.PosterARTests;
+				PRODUCT_BUNDLE_IDENTIFIER = apexPro.AcaPosterArTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "xros xrsimulator";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 7;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PosterAR.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/PosterAR";
-				XROS_DEPLOYMENT_TARGET = 2.2;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AcaPosterAr.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/AcaPosterAr";
+				XROS_DEPLOYMENT_TARGET = 2.4;
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		00E334C32DB918FB00ECD3EC /* Build configuration list for PBXProject "PosterAR" */ = {
+		0B6C5A702DCC8C87003E56C8 /* Build configuration list for PBXProject "AcaPosterAr" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				00E334ED2DB918FD00ECD3EC /* Debug */,
-				00E334EE2DB918FD00ECD3EC /* Release */,
+				0B6C5A972DCC8C89003E56C8 /* Debug */,
+				0B6C5A982DCC8C89003E56C8 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		00E334EA2DB918FD00ECD3EC /* Build configuration list for PBXNativeTarget "PosterAR" */ = {
+		0B6C5A942DCC8C89003E56C8 /* Build configuration list for PBXNativeTarget "AcaPosterAr" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				00E334EB2DB918FD00ECD3EC /* Debug */,
-				00E334EC2DB918FD00ECD3EC /* Release */,
+				0B6C5A952DCC8C89003E56C8 /* Debug */,
+				0B6C5A962DCC8C89003E56C8 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		00E334EF2DB918FD00ECD3EC /* Build configuration list for PBXNativeTarget "PosterARTests" */ = {
+		0B6C5A992DCC8C89003E56C8 /* Build configuration list for PBXNativeTarget "AcaPosterArTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				00E334F02DB918FD00ECD3EC /* Debug */,
-				00E334F12DB918FD00ECD3EC /* Release */,
+				0B6C5A9A2DCC8C89003E56C8 /* Debug */,
+				0B6C5A9B2DCC8C89003E56C8 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -466,11 +481,11 @@
 /* End XCConfigurationList section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		00E334CD2DB918FB00ECD3EC /* RealityKitContent */ = {
+		0B6C5A7A2DCC8C87003E56C8 /* RealityKitContent */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = RealityKitContent;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
-	rootObject = 00E334C02DB918FB00ECD3EC /* Project object */;
+	rootObject = 0B6C5A6D2DCC8C87003E56C8 /* Project object */;
 }
