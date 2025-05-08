@@ -27,11 +27,19 @@ struct ImmersiveView: View {
     @State private var showVideo = false
     @State private var pdfEntity: Entity?
     @State private var videoEntity: Entity?
+    @State private var highlightEntities: [Entity] = []
+
+    @State private var backUrl = "http://10.4.128.60:5025/highlight";
     
     var body: some View {
         RealityView { content in
-            ImmersiveView.drawPart(entity: posterEntity)
+//            ImmersiveView.drawPart(entity: posterEntity)
             posterEntity.addChild(addKeywords(keywords: ["Human Computer Interaction", "Data Visualization"], startPosition: SIMD3<Float>(-0.9, 0.01, -0.55)))
+            
+            print("111")
+            
+            // 获取高亮区域数据
+            fetchHighlights()
             
             // 创建按钮并添加到海报右侧
 //            let buttons = createButtons()
@@ -268,6 +276,97 @@ struct ImmersiveView: View {
                 break
             }
         }
+    }
+    
+    private func addHighlights(boxes: [[String: Float]]) {
+        // 清除现有的高亮区域
+        highlightEntities.forEach { $0.removeFromParent() }
+        highlightEntities.removeAll()
+        
+        // 添加新的高亮区域
+        for box in boxes {
+            print(box)
+            let x = box["x"] ?? 0
+            let y = box["y"] ?? 0
+            let width = box["width"] ?? 0.1
+            let height = box["height"] ?? 0.1
+            
+            let highlightEntity = createCustomRectangle(
+                width: width,
+                height: height,
+                borderColor: .yellow,
+                fillColor: .yellow,
+                opacity: 0.3,
+                x: x - width/2, // 调整x坐标使中心点对齐
+                y: y - height/2 // 调整y坐标使中心点对齐
+            )
+            
+            highlightEntities.append(highlightEntity)
+            posterEntity.addChild(highlightEntity)
+        }
+    }
+    
+    private func fetchHighlights() {
+        guard let url = URL(string: backUrl) else {
+            print("❌ Invalid URL: \(backUrl)")
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        print("📡 Sending request to: \(backUrl)")
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("❌ Network error: \(error)")
+                return
+            }
+            
+            if let httpResponse = response as? HTTPURLResponse {
+                print("📥 Response status code: \(httpResponse.statusCode)")
+            }
+            
+            guard let data = data else {
+                print("❌ No data received")
+                return
+            }
+            
+            print("📦 Received data: \(String(data: data, encoding: .utf8) ?? "Unable to convert data to string")")
+            
+            do {
+                if let jsonArray = try JSONSerialization.jsonObject(with: data) as? [[String: Any]] {
+                    print("✅ Successfully parsed JSON array with \(jsonArray.count) items")
+                    
+                    let boxes = jsonArray.compactMap { dict -> [String: Float]? in
+                        guard let x = dict["x"] as? Double,
+                              let y = dict["y"] as? Double,
+                              let width = dict["width"] as? Double,
+                              let height = dict["height"] as? Double else {
+                            print("❌ Failed to parse box data: \(dict)")
+                            return nil
+                        }
+                        return [
+                            "x": Float(x),
+                            "y": Float(y),
+                            "width": Float(width),
+                            "height": Float(height)
+                        ]
+                    }
+                    
+                    print("📊 Converted boxes: \(boxes)")
+                    
+                    DispatchQueue.main.async {
+                        self.addHighlights(boxes: boxes)
+                    }
+                } else {
+                    print("❌ Failed to parse JSON as array of dictionaries")
+                }
+            } catch {
+                print("❌ JSON parsing error: \(error)")
+            }
+        }.resume()
     }
 }
 

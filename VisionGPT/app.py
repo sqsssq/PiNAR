@@ -2,8 +2,8 @@
 Description: 
 Author: error: git config user.name & please set dead value or install git
 Date: 2025-05-06 13:55:40
-LastEditors: error: git config user.name & please set dead value or install git
-LastEditTime: 2025-05-08 14:02:11
+LastEditors: Qing Shi
+LastEditTime: 2025-05-08 15:58:50
 '''
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -25,7 +25,11 @@ def index():
 
 @app.route('/highlight', methods=['POST'])
 def highlight():
-    return jsonify({"x": 0.5, "y": 0.5, "width": 0.05, "height": 0.05})
+    boxes = [
+        {"x": 0.5, "y": 0.5, "width": 1, "height": 1},
+        {"x": 0.5, "y": 0.5, "width": 0.1, "height": 0.1}
+    ]
+    return jsonify(boxes)
 
 
 @app.route('/chat', methods=['POST'])
