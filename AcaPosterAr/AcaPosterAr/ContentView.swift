@@ -34,12 +34,12 @@ struct ContentView: View {
             // 创建PDF实体并添加到content中
             let pdfEntity = Entity()
             let material = SimpleMaterial(color: .white, isMetallic: false) // 使用简单的蓝色材质
-                    let mesh = MeshResource.generatePlane(width: 0.21, height: 0.297)
+            let mesh = MeshResource.generatePlane(width: 0.21, height: 0.297)
                     
             let modelEntity = ModelEntity(mesh: mesh, materials: [material])
             
             pdfEntity.addChild(modelEntity)
-            pdfEntity.position = SIMD3<Float>(0, 0, 0)
+            pdfEntity.position = SIMD3<Float>(0, -0.3, -0.2)
             
             pdfEntity.isEnabled = true // 设置为可见
             
@@ -150,7 +150,56 @@ struct ContentView: View {
                 .cornerRadius(10)
             }
         }
-
+        // 添加 attachment 修饰符
+        .attachment(
+            id: "pdfControls",
+            anchor: .plane(.horizontal, classification: .floor, minimumBounds: SIMD2<Float>(0.2, 0.2)),
+            position: SIMD3<Float>(0, 0, -0.5)
+        ) {
+            // 这里放置要附加的 UI 元素
+            VStack {
+                Text("PDF 控制面板")
+                    .font(.headline)
+                HStack {
+                    Button("上一页") {
+                        if let document = pdfDocument, currentPage > 0 {
+                            currentPage -= 1
+                            Task {
+                                await updatePDFPage()
+                            }
+                        }
+                    }
+                    Button("下一页") {
+                        if let document = pdfDocument, currentPage < document.pageCount - 1 {
+                            currentPage += 1
+                            Task {
+                                await updatePDFPage()
+                            }
+                        }
+                    }
+                }
+            }
+            .padding()
+            .background(.ultraThinMaterial)
+            .cornerRadius(10)
+        }
+        // 可以添加多个 attachment
+        .attachment(
+            id: "videoControls",
+            anchor: .plane(.horizontal, classification: .floor, minimumBounds: SIMD2<Float>(0.2, 0.2)),
+            position: SIMD3<Float>(0.5, 0, -0.5)
+        ) {
+            VStack {
+                Text("视频控制")
+                    .font(.headline)
+                Button("播放/暂停") {
+                    // 视频控制逻辑
+                }
+            }
+            .padding()
+            .background(.ultraThinMaterial)
+            .cornerRadius(10)
+        }
         .onAppear(perform: {
             Task {
                 await openImmersiveSpace(id: appModel.immersiveSpaceID)
