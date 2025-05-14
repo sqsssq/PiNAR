@@ -13,10 +13,10 @@ import AVKit
 
 struct ImmersiveView: View {
     @State var posterEntity: Entity = {
-        let wallAnchor = AnchorEntity(.plane(.vertical, classification: .wall, minimumBounds: SIMD2<Float>(1, 1)));
-        let planeMesh = MeshResource.generatePlane(width: 1.8, depth: 1, cornerRadius: 0);
+        let wallAnchor = AnchorEntity(.plane(.vertical, classification: .any, minimumBounds: SIMD2<Float>(0.5, 0.5)));
+        let planeMesh = MeshResource.generatePlane(width: 0.71, depth: 0.9475, cornerRadius: 0);
 //        let material = SimpleMaterial(color: .red, isMetallic: false);
-        let material = ImmersiveView.loadImageMaterial(imageUrl: "poster")
+        let material = ImmersiveView.loadImageMaterial(imageUrl: "poster_2")
         let planeEntity = ModelEntity(mesh: planeMesh, materials: [material]);
         planeEntity.name = "canvas";
         wallAnchor.addChild(planeEntity);
@@ -25,6 +25,7 @@ struct ImmersiveView: View {
     
     @State private var showPDF = false
     @State private var showVideo = false
+    @State private var showTextField = true
     @State private var pdfEntity: Entity?
     @State private var videoEntity: Entity?
     @State private var highlightEntities: [Entity] = []
@@ -32,21 +33,64 @@ struct ImmersiveView: View {
     @State private var backUrl = "http://10.4.128.60:5025/highlight";
     
     var body: some View {
-        RealityView { content in
+        RealityView { content, attachments  in
 //            ImmersiveView.drawPart(entity: posterEntity)
-            posterEntity.addChild(addKeywords(keywords: ["Human Computer Interaction", "Data Visualization"], startPosition: SIMD3<Float>(-0.9, 0.01, -0.55)))
+            posterEntity.addChild(addKeywords(keywords: ["Coulomb's Law", "Electrostatic interactions", "dielectric spheres", "like-charge attraction", "Electrostatics", "opposite-charge repulsion"], startPosition: SIMD3<Float>(-0.9, 0.01, -0.55)))
             
             print("111")
             
             // 获取高亮区域数据
             fetchHighlights()
             
-            // 创建按钮并添加到海报右侧
-//            let buttons = createButtons()
-//            buttons.position = SIMD3<Float>(1.1, 0, -0.3) // 在海报右侧1米处
-//            posterEntity.addChild(buttons)
-            
             content.add(posterEntity)
+            
+            
+            // attachment
+            guard let buttonGroupEntity = attachments.entity(for: "buttonGroup") else { return };
+            buttonGroupEntity.position = SIMD3<Float>(0, 0, 0.55);
+            buttonGroupEntity.orientation = simd_quatf(angle: -.pi / 2, axis: SIMD3<Float>(1, 0, 0))
+            posterEntity.addChild(buttonGroupEntity)
+        } update: { _, _ in
+            // 移除位置设置，因为我们现在在 attachments 中设置
+        } attachments: {
+            Attachment(id: "buttonGroup") {
+                HStack(spacing: 20) {
+                    Button {
+                        showPDF.toggle()
+                    } label: {
+                        Text("PDF")
+                            .frame(width: 80)
+                    }
+                    .buttonStyle(.bordered)
+                    
+                    Button {
+                        showVideo.toggle()
+                    } label: {
+                        Text("Video")
+                            .frame(width: 80)
+                    }
+                    .buttonStyle(.bordered)
+                    
+                    Button {
+                        // 按钮3的功能
+                    } label: {
+                        Text("按钮3")
+                            .frame(width: 80)
+                    }
+                    .buttonStyle(.bordered)
+                    
+                    Button {
+                        // 按钮4的功能
+                    } label: {
+                        Text("按钮4")
+                            .frame(width: 80)
+                    }
+                    .buttonStyle(.bordered)
+                }
+                .padding()
+                .background(.ultraThinMaterial)
+                .cornerRadius(10)
+            }
         }
     }
     static func rotateEntityAroundYAxis(entity: Entity, angle: Float) {
@@ -214,61 +258,91 @@ func addKeywords(
     backgroundColor: UIColor = .systemBlue,
     textColor: UIColor = .white
 ) -> Entity {
-    let parent = Entity();
+    let parent = Entity()
     
-    let spacing: Float = 0.03 // 每个词之间的间距
-    var currentX: Float = 0
-    for keyword in keywords {
-        let keywordLength = Float(keyword.count)
-//        let bgWidth = max(0.1, keywordLength * 0.05)
-        let bgWidth = keywordLength * 0.035
-//        let bgWidth = Float(0.5)
-//        print(bgWidth)
-        let bgHeight: Float = 0.07
-
-        let bgMesh = MeshResource.generatePlane(width: bgWidth, height: bgHeight, cornerRadius: 0.01)
-        let bgMaterial = SimpleMaterial(color: backgroundColor.withAlphaComponent(CGFloat(0.8)), isMetallic: false)
-        let bgEntity = ModelEntity(mesh: bgMesh, materials: [bgMaterial])
-
-        // 2. 正确生成文字 mesh
-        let textMesh = MeshResource.generateText(
-            keyword,
-            extrusionDepth: 0.001,
-            font: .systemFont(ofSize: 0.05),
-            containerFrame: .zero,
-            alignment: .center,
-            lineBreakMode: .byWordWrapping
-        )
+    let spacing: Float = 0.03 // 每个词之间的水平间距
+    let verticalSpacing: Float = 0.1 // 行间距
+    let wordsPerLine = 2 // 每行显示的关键词数量
+    
+    // 计算需要多少行
+    let totalLines = (keywords.count + wordsPerLine - 1) / wordsPerLine
+    
+    for lineIndex in 0..<totalLines {
+        let startIndex = lineIndex * wordsPerLine
+        let endIndex = min(startIndex + wordsPerLine, keywords.count)
+        let lineKeywords = Array(keywords[startIndex..<endIndex])
         
-
-        let textMaterial = UnlitMaterial(color: textColor)
-        let textEntity = ModelEntity(mesh: textMesh, materials: [textMaterial])
-//        textEntity.position = SIMD3<Float>(0, 0, 0.001) // 放在背景前面一点
+        // 计算当前行的总宽度
+        var lineWidth: Float = 0
+        for keyword in lineKeywords {
+            let keywordLength = Float(keyword.count)
+            let bgWidth = keywordLength * 0.035
+            lineWidth += bgWidth
+        }
+        lineWidth += spacing * Float(lineKeywords.count - 1) // 添加词间距
         
-        // 获取文字 bounding box 以进行居中
-        let textBounds = textEntity.model?.mesh.bounds ?? .init()
-        let textSize = textBounds.extents
+        // 计算当前行的起始x坐标（居中）
+        var currentX: Float = -lineWidth / 2
         
-        // 将文字移到背景中间（注意：原点在矩形中心）
-        textEntity.position = SIMD3<Float>(
-            x: -textSize.x / 2,
-            y: (-textSize.y / 2 - 0.01),
-            z: 0.001  // 稍微靠前以避免 z-fighting
-        )
-
-        // 3. 加入到背景中
-        bgEntity.addChild(textEntity)
-
-        // 4. 设置位置和绕 X 轴旋转
-        bgEntity.position = startPosition + SIMD3<Float>(currentX + bgWidth / 2, 0, 0)
-        bgEntity.orientation = simd_quatf(angle: -.pi / 2, axis: SIMD3<Float>(1, 0, 0))
-        currentX += bgWidth + spacing
-
+        // 计算当前行的y坐标
+        let currentY = startPosition.y - Float(lineIndex) * verticalSpacing
         
-        parent.addChild(bgEntity)
+        // 创建当前行的关键词
+        for keyword in lineKeywords {
+            let keywordLength = Float(keyword.count)
+            let bgWidth = keywordLength * 0.035
+            let bgHeight: Float = 0.07
+            
+            let bgMesh = MeshResource.generatePlane(width: bgWidth, height: bgHeight, cornerRadius: 0.01)
+            let bgMaterial: SimpleMaterial
+            if keyword == "Electrostatics" {
+                bgMaterial = SimpleMaterial(color: .orange.withAlphaComponent(CGFloat(0.8)), isMetallic: false)
+            } else {
+                bgMaterial = SimpleMaterial(color: backgroundColor.withAlphaComponent(CGFloat(0.8)), isMetallic: false)
+            }
+            let bgEntity = ModelEntity(mesh: bgMesh, materials: [bgMaterial])
+            
+            // 创建文字
+            let textMesh = MeshResource.generateText(
+                keyword,
+                extrusionDepth: 0.001,
+                font: .systemFont(ofSize: 0.05),
+                containerFrame: .zero,
+                alignment: .center,
+                lineBreakMode: .byWordWrapping
+            )
+            
+            let textMaterial = UnlitMaterial(color: textColor)
+            let textEntity = ModelEntity(mesh: textMesh, materials: [textMaterial])
+            
+            // 获取文字边界以进行居中
+            let textBounds = textEntity.model?.mesh.bounds ?? .init()
+            let textSize = textBounds.extents
+            
+            // 将文字移到背景中间
+            textEntity.position = SIMD3<Float>(
+                x: -textSize.x / 2,
+                y: (-textSize.y / 2 - 0.01),
+                z: 0.001
+            )
+            
+            bgEntity.addChild(textEntity)
+            
+            // 设置背景位置
+            bgEntity.position = SIMD3<Float>(
+                x: currentX + bgWidth / 2,
+                y: 0,
+                z: startPosition.z + currentY
+            )
+            bgEntity.orientation = simd_quatf(angle: -.pi / 2, axis: SIMD3<Float>(1, 0, 0))
+            
+            currentX += bgWidth + spacing
+            
+            parent.addChild(bgEntity)
+        }
     }
     
-    return parent;
+    return parent
 }
 
 func createCustomRectangle(

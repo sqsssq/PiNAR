@@ -10,6 +10,8 @@
 		0B6C5A7B2DCC8C87003E56C8 /* RealityKitContent in Frameworks */ = {isa = PBXBuildFile; productRef = 0B6C5A7A2DCC8C87003E56C8 /* RealityKitContent */; };
 		0B6C5A9F2DCC8DC2003E56C8 /* poster.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 0B6C5A9E2DCC8DC2003E56C8 /* poster.jpg */; };
 		0B6C5AA12DCC8E06003E56C8 /* sample.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 0B6C5AA02DCC8E06003E56C8 /* sample.pdf */; };
+		0BBE13052DD310EF0043B112 /* poster_202505.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 0BBE13042DD310EF0043B112 /* poster_202505.pdf */; };
+		0BBE13072DD314C90043B112 /* poster_2.png in Resources */ = {isa = PBXBuildFile; fileRef = 0BBE13062DD314C90043B112 /* poster_2.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -28,6 +30,8 @@
 		0B6C5A8D2DCC8C89003E56C8 /* AcaPosterArTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AcaPosterArTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		0B6C5A9E2DCC8DC2003E56C8 /* poster.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = poster.jpg; sourceTree = "<group>"; };
 		0B6C5AA02DCC8E06003E56C8 /* sample.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = sample.pdf; sourceTree = "<group>"; };
+		0BBE13042DD310EF0043B112 /* poster_202505.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = poster_202505.pdf; sourceTree = "<group>"; };
+		0BBE13062DD314C90043B112 /* poster_2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = poster_2.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -78,6 +82,8 @@
 		0B6C5A6C2DCC8C87003E56C8 = {
 			isa = PBXGroup;
 			children = (
+				0BBE13062DD314C90043B112 /* poster_2.png */,
+				0BBE13042DD310EF0043B112 /* poster_202505.pdf */,
 				0B6C5AA02DCC8E06003E56C8 /* sample.pdf */,
 				0B6C5A9E2DCC8DC2003E56C8 /* poster.jpg */,
 				0B6C5A772DCC8C87003E56C8 /* AcaPosterAr */,
@@ -197,8 +203,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0BBE13072DD314C90043B112 /* poster_2.png in Resources */,
 				0B6C5AA12DCC8E06003E56C8 /* sample.pdf in Resources */,
 				0B6C5A9F2DCC8DC2003E56C8 /* poster.jpg in Resources */,
+				0BBE13052DD310EF0043B112 /* poster_202505.pdf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
