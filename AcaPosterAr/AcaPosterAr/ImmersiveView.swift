@@ -12,6 +12,45 @@ import PDFKit
 import AVKit
 
 struct ImmersiveView: View {
+    
+    
+    @State private var showPDF = false
+    @State private var showVideo = false
+    @State private var showTextField = true
+    @State private var highlightEntities: [Entity] = []
+    @State private var currentPage = 0
+    @State private var pdfDocument: PDFDocument?
+    
+    @State private var player = AVPlayer()
+    @State private var isPlaying = false
+    @State private var progress: Double = 0.0
+    @State private var videoDuration: Double = 1.0 // 防止除以0
+    
+    @State private var isDraggingSlider = false
+    
+    @State private var miniButtonGroupData: [String: [String: Any]] = [
+        "mini1": [
+            "postion": SIMD3<Float>(-0.35, 0, -0.27),
+            "page": 5
+        ],
+        "mini2": [
+            "postion": SIMD3<Float>(-0.35, 0, 0.083),
+            "page": 5
+        ],
+        "mini3": [
+            "postion": SIMD3<Float>(0.07, 0, -0.27),
+            "page": 5
+        ],
+        "mini4": [
+            "postion": SIMD3<Float>(0.07, 0, 0.164),
+            "page": 5
+        ],
+        "mini5": [
+            "postion": SIMD3<Float>(0.07, 0, 0.485),
+            "page": 5
+        ],
+    ]
+    
     @State var posterEntity: Entity = {
         let wallAnchor = AnchorEntity(.plane(.vertical, classification: .any, minimumBounds: SIMD2<Float>(0.5, 0.5)));
         let planeMesh = MeshResource.generatePlane(width: 0.841, depth: 1.189, cornerRadius: 0);
@@ -29,16 +68,53 @@ struct ImmersiveView: View {
         return headAnchor;
     }()
     
-    @State private var showPDF = false
-    @State private var showVideo = false
-    @State private var showTextField = true
-    @State private var pdfEntity: Entity?
-    @State private var videoEntity: Entity?
-    @State private var highlightEntities: [Entity] = []
-    @State private var currentPage = 0
-    @State private var pdfDocument: PDFDocument?
+    @State private var pdfEntity: ModelEntity = {
+        let material = SimpleMaterial(color: .white, isMetallic: false) // 使用简单的蓝色材质
+        let mesh = MeshResource.generatePlane(width: 0.21, height: 0.297)
+                
+        let tmppdfEntity = ModelEntity(mesh: mesh, materials: [material])
+        tmppdfEntity.position = SIMD3<Float>(0, 0.18, -0.3)
+        return tmppdfEntity;
+    }()
+    
+    @State private var demoEntity: Entity = {
+        let headAnchor = Entity();
+        headAnchor.position = [1, 0, -0.2];
+        headAnchor.orientation = simd_quatf(angle: -.pi / 2, axis: SIMD3<Float>(1, 0, 0))
+        return headAnchor;
+    }()
+    
 
     @State private var backUrl = "http://10.4.128.60:5025/highlight";
+    
+    // 添加自定义按钮样式
+    struct CustomButtonStyle: ButtonStyle {
+        @State private var isHovered = false
+        
+        func makeBody(configuration: Configuration) -> some View {
+            configuration.label
+                .padding()
+                .background(
+                    Group {
+                        if configuration.isPressed {
+                            Color.blue.opacity(0.8)
+                        } else if isHovered {
+                            Color.blue.opacity(0.4)
+                        } else {
+                            Color.gray.opacity(0.3)
+                        }
+                    }
+                )
+                .foregroundColor(.white)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+                .scaleEffect(configuration.isPressed ? 0.95 : (isHovered ? 1.05 : 1))
+                .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
+                .animation(.easeInOut(duration: 0.1), value: isHovered)
+                .onHover { hovering in
+                    isHovered = hovering
+                }
+        }
+    }
     
     var body: some View {
         RealityView { content, attachments  in
@@ -53,14 +129,8 @@ struct ImmersiveView: View {
             content.add(posterEntity)
             
                         
-            let material = SimpleMaterial(color: .white, isMetallic: false) // 使用简单的蓝色材质
-            let mesh = MeshResource.generatePlane(width: 0.21, height: 0.297)
-                    
-            let tmppdfEntity = ModelEntity(mesh: mesh, materials: [material])
-            tmppdfEntity.position = SIMD3<Float>(0, 0.18, -0.3)
-            self.pdfEntity = tmppdfEntity
-            pdfEntity?.isEnabled = showPDF;
-            paperEntity.addChild(tmppdfEntity)
+//            pdfEntity.isEnabled = showPDF;
+            paperEntity.addChild(pdfEntity)
 //            self.paperEntity = paperEntity
             
             content.add(paperEntity)
@@ -68,6 +138,55 @@ struct ImmersiveView: View {
             Task {
                 await loadPDF()
             }
+            
+            // MARK: add video
+            
+            guard let url = Bundle.main.url(forResource: "sample", withExtension: "mp4") else {
+                print("❌ 视频文件未找到")
+                return
+            }
+
+            let playerItem = AVPlayerItem(url: url)
+            player.replaceCurrentItem(with: playerItem)
+
+            // 视频平面
+            let planeMesh = MeshResource.generatePlane(width: 1, height: 0.6)
+            let material = VideoMaterial(avPlayer: player)
+            let videoEntity = ModelEntity(mesh: planeMesh, materials: [material])
+            videoEntity.position = [0, 0, 0]
+            
+            demoEntity.addChild(videoEntity)
+
+            // 控制面板（按钮、滑块）
+            if let controls = attachments.entity(for: "VideoControls") {
+                controls.position = [0, -0.35, 0.001]
+                
+                videoEntity.addChild(controls)
+            }
+
+            // 自动重播
+            NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: playerItem, queue: .main) { _ in
+                player.seek(to: .zero)
+                player.play()
+                isPlaying = true
+            }
+
+            // 获取视频时长
+            playerItem.asset.loadValuesAsynchronously(forKeys: ["duration"]) {
+                DispatchQueue.main.async {
+                    self.videoDuration = playerItem.asset.duration.seconds
+                }
+            }
+
+            // 播放进度监听
+            player.addPeriodicTimeObserver(forInterval: CMTime(seconds: 0.1, preferredTimescale: 600), queue: .main) { time in
+                if !self.isDraggingSlider {
+                    self.progress = time.seconds / self.videoDuration
+                }
+            }
+            
+            posterEntity.addChild(demoEntity)
+            
             
             // attachment: Button Group
             guard let buttonGroupEntity = attachments.entity(for: "buttonGroup") else { return };
@@ -77,13 +196,55 @@ struct ImmersiveView: View {
             
             // attachment: Change Page Button
             guard let changePageButtonEntity = attachments.entity(for: "changePage") else { return };
-            changePageButtonEntity.position = SIMD3<Float>(0, -0.2, 0);
-            pdfEntity?.addChild(changePageButtonEntity);
+            changePageButtonEntity.position = SIMD3<Float>(0, -0.19, 0);
+            pdfEntity.addChild(changePageButtonEntity);
+            
+            // attachment: Mini Button Group
+            let index = 1;
+            guard let miniButtonGroup = attachments.entity(for: "mini\(index)") else { return };
+            miniButtonGroup.position = SIMD3<Float>(0.07, 0, 0.485);
+            
+            miniButtonGroup.orientation = simd_quatf(angle: -.pi / 2, axis: SIMD3<Float>(1, 0, 0))
+            posterEntity.addChild(miniButtonGroup)
         } update: { _, _ in
-            if let pdfEntity = pdfEntity {
-                pdfEntity.isEnabled = showPDF;
-            }
+            pdfEntity.isEnabled = showPDF;
+            demoEntity.isEnabled = showVideo;
         } attachments: {
+            Attachment(id: "mini1") {
+                HStack(spacing: 10) {
+                    Button {
+                        let targetPage = 5;
+                        print(showPDF)
+                        if showPDF == false {
+                            showPDF.toggle();
+                        }
+                        if let document = pdfDocument, targetPage > 0, targetPage <= document.pageCount - 1  {
+                            currentPage = 5;
+                            Task {
+                                await updatePDFPage();
+                            }
+                        }
+                    } label: {
+                        Image("pdf")
+                            .resizable()
+                            .frame(width: 32, height: 32)
+//                        Text("3")
+                    }
+                    Button {
+                        let targetPage = 5;
+                        if let document = pdfDocument, targetPage > 0, targetPage <= document.pageCount - 1  {
+                            currentPage = 5;
+                            Task {
+                                await updatePDFPage();
+                            }
+                        }
+                    } label: {
+                        Image("video")
+                            .resizable()
+                            .frame(width: 32, height: 32)
+                    }
+                }
+            }
             Attachment(id: "changePage") {
                 HStack(spacing: 20) {
                     Button {
@@ -128,7 +289,7 @@ struct ImmersiveView: View {
                         .background(.ultraThinMaterial)
                         .clipShape(RoundedRectangle(cornerRadius: 10))
                     }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(CustomButtonStyle())
                     
                     Button {
                         showVideo.toggle()
@@ -144,7 +305,7 @@ struct ImmersiveView: View {
                         .background(.ultraThinMaterial)
                         .clipShape(RoundedRectangle(cornerRadius: 10))
                     }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(CustomButtonStyle())
                     
                     Button {
                         // 按钮3的功能
@@ -153,7 +314,7 @@ struct ImmersiveView: View {
                             .font(.system(size: 32, weight: .semibold))
                             .frame(width: 90)
                     }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(CustomButtonStyle())
                     
                     Button {
                         // 按钮4的功能
@@ -162,11 +323,48 @@ struct ImmersiveView: View {
                             .font(.system(size: 32, weight: .semibold))
                             .frame(width: 90)
                     }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(CustomButtonStyle())
                 }
                 .padding()
                 .background(.ultraThinMaterial)
                 .cornerRadius(10)
+            }
+            Attachment(id: "VideoControls") {
+                HStack(spacing: 20) {
+                    // 播放/暂停按钮
+                    Button {
+                        if isPlaying {
+                            player.pause()
+                        } else {
+                            player.play()
+                        }
+                        isPlaying.toggle()
+                    } label: {
+                        if (isPlaying) {
+                            Image("pause")
+                                .resizable()
+                                .frame(width: 32, height: 32)
+                        } else {
+                            Image("play")
+                                .resizable()
+                                .frame(width: 32, height: 32)
+                        }
+                    }
+                    .buttonStyle(CustomButtonStyle())
+
+                    // 进度条
+                    Slider(value: Binding(
+                        get: { self.progress },
+                        set: { newValue in
+                            self.progress = newValue
+                            let seekTime = CMTime(seconds: newValue * videoDuration, preferredTimescale: 600)
+                            player.seek(to: seekTime)
+                        }),
+                        in: 0...1
+                    )
+                    .frame(width: 700)
+                }
+                .frame(width: 800, height: 100)
             }
         }
     }
@@ -211,40 +409,31 @@ struct ImmersiveView: View {
         guard let document = pdfDocument,
               let page = document.page(at: currentPage) else { return }
         
-        let pdfEntity = paperEntity;
-        let modelEntity = pdfEntity.children.first as? ModelEntity
-        // 渲染当前页面
+        let pdfEntity = pdfEntity
         let pageSize = page.bounds(for: .mediaBox)
-//        let renderer = UIGraphicsImageRenderer(size: pageSize.size)
         let format = UIGraphicsImageRendererFormat()
         format.scale = 2.0
         let renderer = UIGraphicsImageRenderer(size: pageSize.size, format: format)
-//        let image = renderer.image { context in
-////            page.draw(with: .mediaBox, to: context.cgContext)
-//            UIColor.white.setFill()
-//            context.fill(CGRect(origin: .zero, size: pageSize.size))
-//            page.draw(with: .mediaBox, to: context.cgContext)
-//        }
+        
         let image = renderer.image { context in
             let cgContext = context.cgContext
-
+            
             // 翻转坐标系
             cgContext.translateBy(x: 0, y: pageSize.height)
             cgContext.scaleBy(x: 1, y: -1)
-
+            
             // 白色背景
             UIColor.white.setFill()
             cgContext.fill(CGRect(origin: .zero, size: pageSize.size))
-
+            
             // 绘制 PDF 页面
             page.draw(with: .mediaBox, to: cgContext)
         }
-
         
         if let texture = try? await TextureResource(image: image.cgImage!, options: .init(semantic: .color)) {
             var material = SimpleMaterial()
             material.color = .init(tint: .white, texture: .init(texture))
-            modelEntity?.model?.materials = [material]
+            pdfEntity.model?.materials = [material]
         }
     }
     
