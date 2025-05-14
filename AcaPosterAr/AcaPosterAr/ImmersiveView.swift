@@ -14,7 +14,7 @@ import AVKit
 struct ImmersiveView: View {
     @State var posterEntity: Entity = {
         let wallAnchor = AnchorEntity(.plane(.vertical, classification: .any, minimumBounds: SIMD2<Float>(0.5, 0.5)));
-        let planeMesh = MeshResource.generatePlane(width: 0.71, depth: 0.9475, cornerRadius: 0);
+        let planeMesh = MeshResource.generatePlane(width: 0.841, depth: 1.189, cornerRadius: 0);
 //        let material = SimpleMaterial(color: .red, isMetallic: false);
         let material = ImmersiveView.loadImageMaterial(imageUrl: "poster_2")
         let planeEntity = ModelEntity(mesh: planeMesh, materials: [material]);
@@ -23,19 +23,27 @@ struct ImmersiveView: View {
         return wallAnchor;
     }()
     
+    @State var paperEntity: Entity = {
+        let headAnchor = AnchorEntity(.head);
+        headAnchor.position = [0, -0.35, -0.5];
+        return headAnchor;
+    }()
+    
     @State private var showPDF = false
     @State private var showVideo = false
     @State private var showTextField = true
     @State private var pdfEntity: Entity?
     @State private var videoEntity: Entity?
     @State private var highlightEntities: [Entity] = []
+    @State private var currentPage = 0
+    @State private var pdfDocument: PDFDocument?
 
     @State private var backUrl = "http://10.4.128.60:5025/highlight";
     
     var body: some View {
         RealityView { content, attachments  in
 //            ImmersiveView.drawPart(entity: posterEntity)
-            posterEntity.addChild(addKeywords(keywords: ["Coulomb's Law", "Electrostatic interactions", "dielectric spheres", "like-charge attraction", "Electrostatics", "opposite-charge repulsion"], startPosition: SIMD3<Float>(-0.9, 0.01, -0.55)))
+            posterEntity.addChild(addKeywords(keywords: ["Coulomb's Law", "Electrostatic interactions", "dielectric spheres", "like-charge attraction", "Electrostatics", "opposite-charge repulsion"], startPosition: SIMD3<Float>(-0.9, 0.01, -0.65)))
             
             print("111")
             
@@ -44,30 +52,97 @@ struct ImmersiveView: View {
             
             content.add(posterEntity)
             
+                        
+            let material = SimpleMaterial(color: .white, isMetallic: false) // 使用简单的蓝色材质
+            let mesh = MeshResource.generatePlane(width: 0.21, height: 0.297)
+                    
+            let tmppdfEntity = ModelEntity(mesh: mesh, materials: [material])
+            tmppdfEntity.position = SIMD3<Float>(0, 0.18, -0.3)
+            self.pdfEntity = tmppdfEntity
+            pdfEntity?.isEnabled = showPDF;
+            paperEntity.addChild(tmppdfEntity)
+//            self.paperEntity = paperEntity
             
-            // attachment
+            content.add(paperEntity)
+            
+            Task {
+                await loadPDF()
+            }
+            
+            // attachment: Button Group
             guard let buttonGroupEntity = attachments.entity(for: "buttonGroup") else { return };
-            buttonGroupEntity.position = SIMD3<Float>(0, 0, 0.55);
+            buttonGroupEntity.position = SIMD3<Float>(-0.5, 0, -0.42);
             buttonGroupEntity.orientation = simd_quatf(angle: -.pi / 2, axis: SIMD3<Float>(1, 0, 0))
             posterEntity.addChild(buttonGroupEntity)
+            
+            // attachment: Change Page Button
+            guard let changePageButtonEntity = attachments.entity(for: "changePage") else { return };
+            changePageButtonEntity.position = SIMD3<Float>(0, -0.2, 0);
+            pdfEntity?.addChild(changePageButtonEntity);
         } update: { _, _ in
-            // 移除位置设置，因为我们现在在 attachments 中设置
+            if let pdfEntity = pdfEntity {
+                pdfEntity.isEnabled = showPDF;
+            }
         } attachments: {
-            Attachment(id: "buttonGroup") {
+            Attachment(id: "changePage") {
                 HStack(spacing: 20) {
+                    Button {
+                        if let document = pdfDocument, currentPage > 0 {
+                            currentPage -= 1;
+                            Task {
+                                await updatePDFPage();
+                            }
+                        }
+                    } label: {
+                        Image("left")
+                            .resizable()
+                            .frame(width: 32, height: 32)
+                    }
+                    Button {
+                        if let document = pdfDocument, currentPage < document.pageCount - 1 {
+                            currentPage += 1;
+                            Task {
+                                await updatePDFPage();
+                            }
+                        }
+                    } label: {
+                        Image("right")
+                            .resizable()
+                            .frame(width: 32, height: 32)
+                    }
+                }
+            }
+            Attachment(id: "buttonGroup") {
+                VStack(spacing: 20) {
                     Button {
                         showPDF.toggle()
                     } label: {
-                        Text("PDF")
-                            .frame(width: 80)
+                        HStack {
+                            Image("pdf")
+                                .resizable()
+                                .frame(width: 32, height: 32)
+                            Text("PDF")
+                                .font(.system(size: 32, weight: .semibold))
+                        }
+                        .padding()
+                        .background(.ultraThinMaterial)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
                     }
                     .buttonStyle(.bordered)
                     
                     Button {
                         showVideo.toggle()
                     } label: {
-                        Text("Video")
-                            .frame(width: 80)
+                        HStack {
+                            Image("video")
+                                .resizable()
+                                .frame(width: 32, height: 32)
+                            Text("Video")
+                                .font(.system(size: 32, weight: .semibold))
+                        }
+                        .padding()
+                        .background(.ultraThinMaterial)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
                     }
                     .buttonStyle(.bordered)
                     
@@ -75,7 +150,8 @@ struct ImmersiveView: View {
                         // 按钮3的功能
                     } label: {
                         Text("按钮3")
-                            .frame(width: 80)
+                            .font(.system(size: 32, weight: .semibold))
+                            .frame(width: 90)
                     }
                     .buttonStyle(.bordered)
                     
@@ -83,7 +159,8 @@ struct ImmersiveView: View {
                         // 按钮4的功能
                     } label: {
                         Text("按钮4")
-                            .frame(width: 80)
+                            .font(.system(size: 32, weight: .semibold))
+                            .frame(width: 90)
                     }
                     .buttonStyle(.bordered)
                 }
@@ -120,46 +197,58 @@ struct ImmersiveView: View {
         entity.addChild(createCustomRectangle(width: 0.74, height: 0.87, borderColor: .blue, fillColor: .green, opacity: 0.3, x: -0.4, y: -0.375))
     }
     
-    private func loadPDF() {
+    
+    private func loadPDF() async {
         guard let url = Bundle.main.url(forResource: "sample", withExtension: "pdf"),
               let document = PDFDocument(url: url) else { return }
         
-        let pdfEntity = Entity()
-        let material = SimpleMaterial(color: .white, isMetallic: false)
-        let mesh = MeshResource.generatePlane(width: 1, height: 1)
-        let modelEntity = ModelEntity(mesh: mesh, materials: [material])
-        
-        // 将PDF第一页渲染为图片
-        if let page = document.page(at: 0) {
-            let pageSize = page.bounds(for: .mediaBox)
-            let renderer = UIGraphicsImageRenderer(size: pageSize.size)
-            let image = renderer.image { context in
-                page.draw(with: .mediaBox, to: context.cgContext)
-            }
-            
-            if let texture = try? TextureResource.generate(from: image.cgImage!, options: .init(semantic: .color)) {
-                var material = SimpleMaterial()
-                material.color = .init(tint: .white, texture: .init(texture))
-                modelEntity.model?.materials = [material]
-            }
-        }
-        
-        pdfEntity.addChild(modelEntity)
-        
-        // 获取用户当前的位置和方向
-        let userPosition = SIMD3<Float>(0, 0, 0)
-        let userDirection = SIMD3<Float>(0, 0, -1)
-        
-        // 在用户前方2米处显示PDF
-        let pdfPosition = userPosition + userDirection * 2.0
-        pdfEntity.position = pdfPosition
-        
-        // 让PDF面向用户
-        pdfEntity.look(at: userPosition, from: pdfPosition, relativeTo: nil)
-        
-        self.pdfEntity = pdfEntity
-        posterEntity.addChild(pdfEntity)
+        pdfDocument = document
+        currentPage = 0
+        await updatePDFPage()
     }
+    
+    private func updatePDFPage() async {
+        guard let document = pdfDocument,
+              let page = document.page(at: currentPage) else { return }
+        
+        let pdfEntity = paperEntity;
+        let modelEntity = pdfEntity.children.first as? ModelEntity
+        // 渲染当前页面
+        let pageSize = page.bounds(for: .mediaBox)
+//        let renderer = UIGraphicsImageRenderer(size: pageSize.size)
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 2.0
+        let renderer = UIGraphicsImageRenderer(size: pageSize.size, format: format)
+//        let image = renderer.image { context in
+////            page.draw(with: .mediaBox, to: context.cgContext)
+//            UIColor.white.setFill()
+//            context.fill(CGRect(origin: .zero, size: pageSize.size))
+//            page.draw(with: .mediaBox, to: context.cgContext)
+//        }
+        let image = renderer.image { context in
+            let cgContext = context.cgContext
+
+            // 翻转坐标系
+            cgContext.translateBy(x: 0, y: pageSize.height)
+            cgContext.scaleBy(x: 1, y: -1)
+
+            // 白色背景
+            UIColor.white.setFill()
+            cgContext.fill(CGRect(origin: .zero, size: pageSize.size))
+
+            // 绘制 PDF 页面
+            page.draw(with: .mediaBox, to: cgContext)
+        }
+
+        
+        if let texture = try? await TextureResource(image: image.cgImage!, options: .init(semantic: .color)) {
+            var material = SimpleMaterial()
+            material.color = .init(tint: .white, texture: .init(texture))
+            modelEntity?.model?.materials = [material]
+        }
+    }
+    
+    
     private func addHighlights(boxes: [[String: Float]]) {
         // 清除现有的高亮区域
         highlightEntities.forEach { $0.removeFromParent() }
@@ -276,7 +365,7 @@ func addKeywords(
         var lineWidth: Float = 0
         for keyword in lineKeywords {
             let keywordLength = Float(keyword.count)
-            let bgWidth = keywordLength * 0.035
+            let bgWidth = keywordLength * 0.03
             lineWidth += bgWidth
         }
         lineWidth += spacing * Float(lineKeywords.count - 1) // 添加词间距
@@ -290,7 +379,7 @@ func addKeywords(
         // 创建当前行的关键词
         for keyword in lineKeywords {
             let keywordLength = Float(keyword.count)
-            let bgWidth = keywordLength * 0.035
+            let bgWidth = keywordLength * 0.03
             let bgHeight: Float = 0.07
             
             let bgMesh = MeshResource.generatePlane(width: bgWidth, height: bgHeight, cornerRadius: 0.01)
@@ -306,7 +395,7 @@ func addKeywords(
             let textMesh = MeshResource.generateText(
                 keyword,
                 extrusionDepth: 0.001,
-                font: .systemFont(ofSize: 0.05),
+                font: .systemFont(ofSize: 0.04),
                 containerFrame: .zero,
                 alignment: .center,
                 lineBreakMode: .byWordWrapping

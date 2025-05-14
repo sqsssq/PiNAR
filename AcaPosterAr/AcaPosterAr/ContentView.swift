@@ -31,29 +31,29 @@ struct ContentView: View {
     var body: some View {
         RealityView { content in
 
-            // 创建PDF实体并添加到content中
-            let pdfEntity = Entity()
-            let material = SimpleMaterial(color: .white, isMetallic: false) // 使用简单的蓝色材质
-            let mesh = MeshResource.generatePlane(width: 0.21, height: 0.297)
-                    
-            let modelEntity = ModelEntity(mesh: mesh, materials: [material])
-            
-            pdfEntity.addChild(modelEntity)
-            pdfEntity.position = SIMD3<Float>(0, -0.3, -0.2)
-            
-            pdfEntity.isEnabled = true // 设置为可见
-            
-        //    // 添加拖动手势
-        //    modelEntity.components.set(InputTargetComponent())
-        //    modelEntity.components.set(CollisionComponent(shapes: [.generateBox(width: 1, height: 1, depth: 0.01)]))
-        //
-            self.pdfEntity = pdfEntity
-            content.add(pdfEntity)
-            
-        //     注释掉PDF加载
-//            Task {
-//                await loadPDF()
-//            }
+//            // 创建PDF实体并添加到content中
+//            let pdfEntity = Entity()
+//            let material = SimpleMaterial(color: .white, isMetallic: false) // 使用简单的蓝色材质
+//            let mesh = MeshResource.generatePlane(width: 0.21, height: 0.297)
+//                    
+//            let modelEntity = ModelEntity(mesh: mesh, materials: [material])
+//            
+//            pdfEntity.addChild(modelEntity)
+//            pdfEntity.position = SIMD3<Float>(0, -0.3, -0.2)
+//            
+//            pdfEntity.isEnabled = true // 设置为可见
+//            
+//        //    // 添加拖动手势
+//        //    modelEntity.components.set(InputTargetComponent())
+//        //    modelEntity.components.set(CollisionComponent(shapes: [.generateBox(width: 1, height: 1, depth: 0.01)]))
+//        //
+//            self.pdfEntity = pdfEntity
+//            content.add(pdfEntity)
+//            
+//        //     注释掉PDF加载
+////            Task {
+////                await loadPDF()
+////            }
         } update: { content in
             // 更新PDF实体的可见性
             if let pdfEntity = pdfEntity {
@@ -63,93 +63,93 @@ struct ContentView: View {
         .gesture(TapGesture().targetedToAnyEntity().onEnded { _ in
             enlarge.toggle()
         })
-        .toolbar {
-            ToolbarItemGroup(placement: .bottomOrnament) {
-                HStack(spacing: 12) {
-                    Button {
-                        showPDF.toggle()
-                    } label: {
-                        Text(showPDF ? "关闭PDF" : "显示PDF")
-                            .frame(width: 100)
-                    }
-                    .buttonStyle(.bordered)
-                    .animation(.none, value: 0)
-                    .fontWeight(.semibold)
-                    
-                    if showPDF {
-                        Button {
-                            if let document = pdfDocument, currentPage > 0 {
-                                currentPage -= 1
-                                Task {
-                                    await updatePDFPage()
-                                }
-                            }
-                        } label: {
-                            Text("上一页")
-                                .frame(width: 100)
-                        }
-                        .buttonStyle(.bordered)
-                        .animation(.none, value: 0)
-                        .fontWeight(.semibold)
-                        
-                        Button {
-                            if let document = pdfDocument, currentPage < document.pageCount - 1 {
-                                currentPage += 1
-                                Task {
-                                    await updatePDFPage()
-                                }
-                            }
-                        } label: {
-                            Text("下一页")
-                                .frame(width: 100)
-                        }
-                        .buttonStyle(.bordered)
-                        .animation(.none, value: 0)
-                        .fontWeight(.semibold)
-                    }
-                    
-                    Button {
-                        showVideo.toggle()
-                        if showVideo {
-                            Task {
-                                await loadVideo()
-                            }
-                        } else {
-                            videoEntity?.removeFromParent()
-                        }
-                    } label: {
-                        Text(showVideo ? "关闭视频" : "播放视频")
-                            .frame(width: 100)
-                    }
-                    .buttonStyle(.bordered)
-                    .animation(.none, value: 0)
-                    .fontWeight(.semibold)
-                    
-                    Button {
-                        // 按钮3的功能
-                    } label: {
-                        Text("按钮3")
-                            .frame(width: 100)
-                    }
-                    .buttonStyle(.bordered)
-                    .animation(.none, value: 0)
-                    .fontWeight(.semibold)
-                    
-                    Button {
-                        // 按钮4的功能
-                    } label: {
-                        Text("按钮4")
-                            .frame(width: 100)
-                    }
-                    .buttonStyle(.bordered)
-                    .animation(.none, value: 0)
-                    .fontWeight(.semibold)
-                }
-                .padding()
-                .background(.ultraThinMaterial)
-                .cornerRadius(10)
-            }
-        }
+//        .toolbar {
+//            ToolbarItemGroup(placement: .bottomOrnament) {
+//                HStack(spacing: 12) {
+//                    Button {
+//                        showPDF.toggle()
+//                    } label: {
+//                        Text(showPDF ? "关闭PDF" : "显示PDF")
+//                            .frame(width: 100)
+//                    }
+//                    .buttonStyle(.bordered)
+//                    .animation(.none, value: 0)
+//                    .fontWeight(.semibold)
+//                    
+//                    if showPDF {
+//                        Button {
+//                            if let document = pdfDocument, currentPage > 0 {
+//                                currentPage -= 1
+//                                Task {
+//                                    await updatePDFPage()
+//                                }
+//                            }
+//                        } label: {
+//                            Text("上一页")
+//                                .frame(width: 100)
+//                        }
+//                        .buttonStyle(.bordered)
+//                        .animation(.none, value: 0)
+//                        .fontWeight(.semibold)
+//                        
+//                        Button {
+//                            if let document = pdfDocument, currentPage < document.pageCount - 1 {
+//                                currentPage += 1
+//                                Task {
+//                                    await updatePDFPage()
+//                                }
+//                            }
+//                        } label: {
+//                            Text("下一页")
+//                                .frame(width: 100)
+//                        }
+//                        .buttonStyle(.bordered)
+//                        .animation(.none, value: 0)
+//                        .fontWeight(.semibold)
+//                    }
+//                    
+//                    Button {
+//                        showVideo.toggle()
+//                        if showVideo {
+//                            Task {
+//                                await loadVideo()
+//                            }
+//                        } else {
+//                            videoEntity?.removeFromParent()
+//                        }
+//                    } label: {
+//                        Text(showVideo ? "关闭视频" : "播放视频")
+//                            .frame(width: 100)
+//                    }
+//                    .buttonStyle(.bordered)
+//                    .animation(.none, value: 0)
+//                    .fontWeight(.semibold)
+//                    
+//                    Button {
+//                        // 按钮3的功能
+//                    } label: {
+//                        Text("按钮3")
+//                            .frame(width: 100)
+//                    }
+//                    .buttonStyle(.bordered)
+//                    .animation(.none, value: 0)
+//                    .fontWeight(.semibold)
+//                    
+//                    Button {
+//                        // 按钮4的功能
+//                    } label: {
+//                        Text("按钮4")
+//                            .frame(width: 100)
+//                    }
+//                    .buttonStyle(.bordered)
+//                    .animation(.none, value: 0)
+//                    .fontWeight(.semibold)
+//                }
+//                .padding()
+//                .background(.ultraThinMaterial)
+//                .cornerRadius(10)
+//            }
+//        }
         .onAppear(perform: {
             Task {
                 await openImmersiveSpace(id: appModel.immersiveSpaceID)
