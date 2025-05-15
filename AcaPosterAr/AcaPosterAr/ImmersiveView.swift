@@ -30,23 +30,23 @@ struct ImmersiveView: View {
     
     @State private var miniButtonGroupData: [String: [String: Any]] = [
         "mini1": [
-            "postion": SIMD3<Float>(-0.35, 0, -0.27),
+            "position": SIMD3<Float>(-0.35, 0, -0.27),
             "page": 5
         ],
         "mini2": [
-            "postion": SIMD3<Float>(-0.35, 0, 0.083),
+            "position": SIMD3<Float>(-0.35, 0, 0.083),
             "page": 5
         ],
         "mini3": [
-            "postion": SIMD3<Float>(0.07, 0, -0.27),
+            "position": SIMD3<Float>(0.07, 0, -0.27),
             "page": 5
         ],
         "mini4": [
-            "postion": SIMD3<Float>(0.07, 0, 0.164),
+            "position": SIMD3<Float>(0.07, 0, 0.164),
             "page": 5
         ],
         "mini5": [
-            "postion": SIMD3<Float>(0.07, 0, 0.485),
+            "position": SIMD3<Float>(0.07, 0, 0.485),
             "page": 5
         ],
     ]
@@ -78,9 +78,11 @@ struct ImmersiveView: View {
     }()
     
     @State private var demoEntity: Entity = {
-        let headAnchor = Entity();
-        headAnchor.position = [1, 0, -0.2];
-        headAnchor.orientation = simd_quatf(angle: -.pi / 2, axis: SIMD3<Float>(1, 0, 0))
+//        let headAnchor = Entity();
+//        headAnchor.position = [1, 0, -0.2];
+//        headAnchor.orientation = simd_quatf(angle: -.pi / 2, axis: SIMD3<Float>(1, 0, 0))
+        let headAnchor = AnchorEntity(.head)
+        headAnchor.position = [0, 0, -1]
         return headAnchor;
     }()
     
@@ -159,7 +161,7 @@ struct ImmersiveView: View {
 
             // 控制面板（按钮、滑块）
             if let controls = attachments.entity(for: "VideoControls") {
-                controls.position = [0, -0.35, 0.001]
+                controls.position = [0, -0.32, 0.001]
                 
                 videoEntity.addChild(controls)
             }
@@ -171,12 +173,31 @@ struct ImmersiveView: View {
                 isPlaying = true
             }
 
-            // 获取视频时长
-            playerItem.asset.loadValuesAsynchronously(forKeys: ["duration"]) {
-                DispatchQueue.main.async {
-                    self.videoDuration = playerItem.asset.duration.seconds
+//            // 获取视频时长
+//            playerItem.asset.loadValuesAsynchronously(forKeys: ["duration"]) {
+//                DispatchQueue.main.async {
+//                    self.videoDuration = playerItem.asset.duration.seconds
+//                }
+//            }
+//
+            Task {
+                do {
+                    self.videoDuration = try await playerItem.asset.load(.duration).seconds
+
+                    // 异步加载时长
+//                    let _ = try await playerItem.asset.load(.duration)
+                    
+//                    // 获取时长并更新UI
+//                    DispatchQueue.main.async {
+//                        self.videoDuration = playerItem.asset.load(.duration).seconds
+//                    }
+                } catch {
+                    // 错误处理
+                    print("Failed to load video duration: \(error)")
                 }
             }
+
+            
 
             // 播放进度监听
             player.addPeriodicTimeObserver(forInterval: CMTime(seconds: 0.1, preferredTimescale: 600), queue: .main) { time in
@@ -190,7 +211,7 @@ struct ImmersiveView: View {
             
             // attachment: Button Group
             guard let buttonGroupEntity = attachments.entity(for: "buttonGroup") else { return };
-            buttonGroupEntity.position = SIMD3<Float>(-0.5, 0, -0.42);
+            buttonGroupEntity.position = SIMD3<Float>(-0.54, 0, -0.42);
             buttonGroupEntity.orientation = simd_quatf(angle: -.pi / 2, axis: SIMD3<Float>(1, 0, 0))
             posterEntity.addChild(buttonGroupEntity)
             
@@ -200,51 +221,61 @@ struct ImmersiveView: View {
             pdfEntity.addChild(changePageButtonEntity);
             
             // attachment: Mini Button Group
-            let index = 1;
-            guard let miniButtonGroup = attachments.entity(for: "mini\(index)") else { return };
-            miniButtonGroup.position = SIMD3<Float>(0.07, 0, 0.485);
-            
-            miniButtonGroup.orientation = simd_quatf(angle: -.pi / 2, axis: SIMD3<Float>(1, 0, 0))
-            posterEntity.addChild(miniButtonGroup)
+            print(miniButtonGroupData)
+            for (key, value) in miniButtonGroupData {
+//                let index = i;
+                print(key)
+                guard let miniButtonGroup = attachments.entity(for: key) else { return };
+                
+                guard var position = value["position"] as? SIMD3<Float> else { return }
+                position.y = 0.001
+                miniButtonGroup.position = position;
+                
+                miniButtonGroup.orientation = simd_quatf(angle: -.pi / 2, axis: SIMD3<Float>(1, 0, 0))
+                posterEntity.addChild(miniButtonGroup)
+            }
         } update: { _, _ in
             pdfEntity.isEnabled = showPDF;
             demoEntity.isEnabled = showVideo;
         } attachments: {
-            Attachment(id: "mini1") {
-                HStack(spacing: 10) {
-                    Button {
-                        let targetPage = 5;
-                        print(showPDF)
-                        if showPDF == false {
-                            showPDF.toggle();
-                        }
-                        if let document = pdfDocument, targetPage > 0, targetPage <= document.pageCount - 1  {
-                            currentPage = 5;
-                            Task {
-                                await updatePDFPage();
+            ForEach(0..<miniButtonGroupData.count, id: \.self) { index in
+                Attachment(id: "mini\(index + 1)") {
+                    HStack(spacing: 10) {
+                        Button {
+                            guard let targetPage = miniButtonGroupData["mini\(index + 1)"]?["page"] as? Int else { return };
+                            
+                            if showPDF == false {
+                                showPDF.toggle();
                             }
-                        }
-                    } label: {
-                        Image("pdf")
-                            .resizable()
-                            .frame(width: 32, height: 32)
-//                        Text("3")
-                    }
-                    Button {
-                        let targetPage = 5;
-                        if let document = pdfDocument, targetPage > 0, targetPage <= document.pageCount - 1  {
-                            currentPage = 5;
-                            Task {
-                                await updatePDFPage();
+                            if let document = pdfDocument, targetPage > 0, targetPage <= document.pageCount - 1  {
+                                currentPage = 5;
+                                Task {
+                                    await updatePDFPage();
+                                }
                             }
+                        } label: {
+                            Image("pdf")
+                                .resizable()
+                                .frame(width: 24, height: 24)
+    //                        Text("3")
                         }
-                    } label: {
-                        Image("video")
-                            .resizable()
-                            .frame(width: 32, height: 32)
+                        Button {
+                            guard let targetPage = miniButtonGroupData["mini\(index + 1)"]?["page"] as? Int else { return };
+                            if let document = pdfDocument, targetPage > 0, targetPage <= document.pageCount - 1  {
+                                currentPage = 5;
+                                Task {
+                                    await updatePDFPage();
+                                }
+                            }
+                        } label: {
+                            Image("video")
+                                .resizable()
+                                .frame(width: 24, height: 24)
+                        }
                     }
                 }
             }
+            
             Attachment(id: "changePage") {
                 HStack(spacing: 20) {
                     Button {
@@ -256,6 +287,15 @@ struct ImmersiveView: View {
                         }
                     } label: {
                         Image("left")
+                            .resizable()
+                            .frame(width: 32, height: 32)
+                    }
+                    Button {
+                        if showPDF == true {
+                            showPDF.toggle();
+                        }
+                    } label: {
+                        Image("close")
                             .resizable()
                             .frame(width: 32, height: 32)
                     }
@@ -289,7 +329,7 @@ struct ImmersiveView: View {
                         .background(.ultraThinMaterial)
                         .clipShape(RoundedRectangle(cornerRadius: 10))
                     }
-                    .buttonStyle(CustomButtonStyle())
+//                    .buttonStyle(CustomButtonStyle())
                     
                     Button {
                         showVideo.toggle()
@@ -305,7 +345,7 @@ struct ImmersiveView: View {
                         .background(.ultraThinMaterial)
                         .clipShape(RoundedRectangle(cornerRadius: 10))
                     }
-                    .buttonStyle(CustomButtonStyle())
+//                    .buttonStyle(CustomButtonStyle())
                     
                     Button {
                         // 按钮3的功能
@@ -314,7 +354,7 @@ struct ImmersiveView: View {
                             .font(.system(size: 32, weight: .semibold))
                             .frame(width: 90)
                     }
-                    .buttonStyle(CustomButtonStyle())
+//                    .buttonStyle(CustomButtonStyle())
                     
                     Button {
                         // 按钮4的功能
@@ -323,7 +363,7 @@ struct ImmersiveView: View {
                             .font(.system(size: 32, weight: .semibold))
                             .frame(width: 90)
                     }
-                    .buttonStyle(CustomButtonStyle())
+//                    .buttonStyle(CustomButtonStyle())
                 }
                 .padding()
                 .background(.ultraThinMaterial)
@@ -350,7 +390,7 @@ struct ImmersiveView: View {
                                 .frame(width: 32, height: 32)
                         }
                     }
-                    .buttonStyle(CustomButtonStyle())
+//                    .buttonStyle(CustomButtonStyle())
 
                     // 进度条
                     Slider(value: Binding(
@@ -363,8 +403,20 @@ struct ImmersiveView: View {
                         in: 0...1
                     )
                     .frame(width: 700)
+                    
+                    
+                        // 播放/暂停按钮
+                        Button {
+                            if showVideo == true {
+                                showVideo.toggle();
+                            }
+                        } label: {
+                            Image("close")
+                                .resizable()
+                                .frame(width: 32, height: 32)
+                        }
                 }
-                .frame(width: 800, height: 100)
+                .frame(width: 900, height: 100)
             }
         }
     }
