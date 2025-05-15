@@ -121,7 +121,7 @@ struct ImmersiveView: View {
     var body: some View {
         RealityView { content, attachments  in
 //            ImmersiveView.drawPart(entity: posterEntity)
-            posterEntity.addChild(addKeywords(keywords: ["Coulomb's Law", "Electrostatic interactions", "dielectric spheres", "like-charge attraction", "Electrostatics", "opposite-charge repulsion"], startPosition: SIMD3<Float>(-0.9, 0.01, -0.65)))
+            posterEntity.addChild(addKeywords(keywords: ["Coulomb's Law", "Electrostatic Interactions", "Dielectric Spheres", "Like-charge Attraction", "Electrostatics", "Opposite-charge Repulsion"], startPosition: SIMD3<Float>(-0.9, 0.01, -0.65)))
             
             print("111")
             

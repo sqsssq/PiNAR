@@ -19,7 +19,8 @@ struct AcaPosterArApp: App {
             ContentView()
                 .environment(appModel)
         }
-        .windowStyle(.volumetric)
+         .windowStyle(.volumetric)
+//        .windowStyle(.plain)
 
         ImmersiveSpace(id: appModel.immersiveSpaceID) {
             ImmersiveView()

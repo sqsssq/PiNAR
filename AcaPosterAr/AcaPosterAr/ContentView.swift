@@ -31,17 +31,17 @@ struct ContentView: View {
     var body: some View {
         RealityView { content in
 
-//            // 创建PDF实体并添加到content中
-//            let pdfEntity = Entity()
-//            let material = SimpleMaterial(color: .white, isMetallic: false) // 使用简单的蓝色材质
-//            let mesh = MeshResource.generatePlane(width: 0.21, height: 0.297)
-//                    
-//            let modelEntity = ModelEntity(mesh: mesh, materials: [material])
-//            
-//            pdfEntity.addChild(modelEntity)
-//            pdfEntity.position = SIMD3<Float>(0, -0.3, -0.2)
-//            
-//            pdfEntity.isEnabled = true // 设置为可见
+            // 创建PDF实体并添加到content中
+            let pdfEntity = Entity()
+            let material = SimpleMaterial(color: .white, isMetallic: false) // 使用简单的蓝色材质
+            let mesh = MeshResource.generatePlane(width: 0.21, height: 0.297)
+                    
+            let modelEntity = ModelEntity(mesh: mesh, materials: [material])
+            
+            pdfEntity.addChild(modelEntity)
+            pdfEntity.position = SIMD3<Float>(0, 0, 0)
+            
+            pdfEntity.isEnabled = true // 设置为可见
 //            
 //        //    // 添加拖动手势
 //        //    modelEntity.components.set(InputTargetComponent())
