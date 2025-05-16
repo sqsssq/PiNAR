@@ -10,6 +10,7 @@ import RealityKit
 import RealityKitContent
 import PDFKit
 import AVKit
+import Speech
 
 struct ImmersiveView: View {
     
@@ -27,6 +28,15 @@ struct ImmersiveView: View {
     @State private var videoDuration: Double = 1.0 // 防止除以0
     
     @State private var isDraggingSlider = false
+    
+    
+    @State private var prompt: String = ""
+    @State private var reply: String = ""
+    @State private var isLoading = false
+    @State private var isRecording = false
+    @State private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
+    @State private var recognitionTask: SFSpeechRecognitionTask?
+    
     
     @State private var miniButtonGroupData: [String: [String: Any]] = [
         "mini1": [
@@ -73,7 +83,7 @@ struct ImmersiveView: View {
         let mesh = MeshResource.generatePlane(width: 0.21, height: 0.297)
                 
         let tmppdfEntity = ModelEntity(mesh: mesh, materials: [material])
-        tmppdfEntity.position = SIMD3<Float>(0, 0.18, -0.3)
+        tmppdfEntity.position = SIMD3<Float>(0, 0.18, -0.2)
         return tmppdfEntity;
     }()
     
@@ -82,41 +92,20 @@ struct ImmersiveView: View {
 //        headAnchor.position = [1, 0, -0.2];
 //        headAnchor.orientation = simd_quatf(angle: -.pi / 2, axis: SIMD3<Float>(1, 0, 0))
         let headAnchor = AnchorEntity(.head)
-        headAnchor.position = [0, 0, -1]
+        headAnchor.position = [0, 0, -0.8]
+        return headAnchor;
+    }()
+    
+    @State private var controlButtonGroupEntity: Entity = {
+        let headAnchor = AnchorEntity(.head)
+        headAnchor.position = [0, 0, -0.5]
         return headAnchor;
     }()
     
 
     @State private var backUrl = "http://10.4.128.60:5025/highlight";
     
-    // 添加自定义按钮样式
-    struct CustomButtonStyle: ButtonStyle {
-        @State private var isHovered = false
-        
-        func makeBody(configuration: Configuration) -> some View {
-            configuration.label
-                .padding()
-                .background(
-                    Group {
-                        if configuration.isPressed {
-                            Color.blue.opacity(0.8)
-                        } else if isHovered {
-                            Color.blue.opacity(0.4)
-                        } else {
-                            Color.gray.opacity(0.3)
-                        }
-                    }
-                )
-                .foregroundColor(.white)
-                .clipShape(RoundedRectangle(cornerRadius: 10))
-                .scaleEffect(configuration.isPressed ? 0.95 : (isHovered ? 1.05 : 1))
-                .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
-                .animation(.easeInOut(duration: 0.1), value: isHovered)
-                .onHover { hovering in
-                    isHovered = hovering
-                }
-        }
-    }
+    
     
     var body: some View {
         RealityView { content, attachments  in
@@ -152,7 +141,7 @@ struct ImmersiveView: View {
             player.replaceCurrentItem(with: playerItem)
 
             // 视频平面
-            let planeMesh = MeshResource.generatePlane(width: 1, height: 0.6)
+            let planeMesh = MeshResource.generatePlane(width: 0.5, height: 0.3)
             let material = VideoMaterial(avPlayer: player)
             let videoEntity = ModelEntity(mesh: planeMesh, materials: [material])
             videoEntity.position = [0, 0, 0]
@@ -161,8 +150,7 @@ struct ImmersiveView: View {
 
             // 控制面板（按钮、滑块）
             if let controls = attachments.entity(for: "VideoControls") {
-                controls.position = [0, -0.32, 0.001]
-                
+                controls.position = [0, -0.18, 0.001]
                 videoEntity.addChild(controls)
             }
 
@@ -212,16 +200,18 @@ struct ImmersiveView: View {
             // attachment: Button Group
             guard let buttonGroupEntity = attachments.entity(for: "buttonGroup") else { return };
             buttonGroupEntity.position = SIMD3<Float>(-0.54, 0, -0.42);
-            buttonGroupEntity.orientation = simd_quatf(angle: -.pi / 2, axis: SIMD3<Float>(1, 0, 0))
-            posterEntity.addChild(buttonGroupEntity)
+//            buttonGroupEntity.orientation = simd_quatf(angle: -.pi / 2, axis: SIMD3<Float>(1, 0, 0))
+//            posterEntity.addChild(buttonGroupEntity)
+            controlButtonGroupEntity.addChild(buttonGroupEntity)
+            
+            content.add(controlButtonGroupEntity)
             
             // attachment: Change Page Button
             guard let changePageButtonEntity = attachments.entity(for: "changePage") else { return };
-            changePageButtonEntity.position = SIMD3<Float>(0, -0.19, 0);
+            changePageButtonEntity.position = SIMD3<Float>(0, -0.2, 0);
             pdfEntity.addChild(changePageButtonEntity);
             
             // attachment: Mini Button Group
-            print(miniButtonGroupData)
             for (key, value) in miniButtonGroupData {
 //                let index = i;
                 print(key)
@@ -238,6 +228,66 @@ struct ImmersiveView: View {
             pdfEntity.isEnabled = showPDF;
             demoEntity.isEnabled = showVideo;
         } attachments: {
+            Attachment(id: "gptSpace") {
+                VStack(spacing: 20) {
+                    Text("🎯 GPT Assistant")
+                        .font(.largeTitle)
+                        .bold()
+
+                    TextField("请输入问题", text: $prompt)
+                        .textFieldStyle(.roundedBorder)
+                        .padding(.horizontal)
+
+                    HStack(spacing: 20) {
+                        Button(action: {
+                            isLoading = true
+                            callMyGPTAPI(prompt: prompt) { result in
+                                DispatchQueue.main.async {
+                                    reply = result ?? "⚠️ 获取回答失败"
+                                    isLoading = false
+                                }
+                            }
+                        }) {
+                            Text("Ask GPT")
+                                .padding()
+                                .background(Color.blue)
+                                .foregroundColor(.white)
+                                .cornerRadius(10)
+                        }
+                        .disabled(isLoading || prompt.isEmpty)
+
+                        Button(action: {
+                            isRecording ? stopSpeechRecognition() : startSpeechRecognition()
+                        }) {
+                            ZStack {
+                                Circle()
+                                    .fill(isRecording ? Color.red : Color.green)
+                                    .frame(width: 50, height: 50)
+
+                                if isRecording {
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                } else {
+                                    Image(systemName: "mic")
+                                        .foregroundColor(.white)
+                                }
+                            }
+                        }
+                    }
+
+                    if isLoading {
+                        ProgressView()
+                    } else {
+                        Text(reply)
+                            .font(.title3)
+                            .padding()
+                            .multilineTextAlignment(.center)
+                    }
+
+                    Spacer()
+                }
+                .padding()
+            }
             ForEach(0..<miniButtonGroupData.count, id: \.self) { index in
                 Attachment(id: "mini\(index + 1)") {
                     HStack(spacing: 10) {
@@ -402,19 +452,17 @@ struct ImmersiveView: View {
                         }),
                         in: 0...1
                     )
-                    .frame(width: 700)
-                    
-                    
-                        // 播放/暂停按钮
-                        Button {
-                            if showVideo == true {
-                                showVideo.toggle();
-                            }
-                        } label: {
-                            Image("close")
-                                .resizable()
-                                .frame(width: 32, height: 32)
+                    .frame(width: 600)
+                    // 播放/暂停按钮
+                    Button {
+                        if showVideo == true {
+                            showVideo.toggle();
                         }
+                    } label: {
+                        Image("close")
+                            .resizable()
+                            .frame(width: 32, height: 32)
+                    }
                 }
                 .frame(width: 900, height: 100)
             }
