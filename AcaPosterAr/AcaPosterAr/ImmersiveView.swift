@@ -14,7 +14,7 @@ import Speech
 
 struct ImmersiveView: View {
     
-    
+    // MARK: Parameter Group
     @State private var showPDF = false
     @State private var showVideo = false
     @State private var showTextField = true
@@ -36,7 +36,28 @@ struct ImmersiveView: View {
     @State private var isRecording = false
     @State private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
     @State private var recognitionTask: SFSpeechRecognitionTask?
+    @State private var chatHistory: [[String: String]] = [
+        [
+            "role": "user",
+            "content": "这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题"
+        ],
+        [
+            "role": "System",
+            "content": "这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题"
+        ],
+        [
+            "role": "user",
+            "content": "这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题"
+        ],
+        [
+            "role": "System",
+            "content": "这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题"
+        ]
+    ];
     
+    private let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "zh-CN"))
+    private let audioEngine = AVAudioEngine()
+
     
     @State private var miniButtonGroupData: [String: [String: Any]] = [
         "mini1": [
@@ -61,6 +82,7 @@ struct ImmersiveView: View {
         ],
     ]
     
+    // MARK: Entity Group
     @State var posterEntity: Entity = {
         let wallAnchor = AnchorEntity(.plane(.vertical, classification: .any, minimumBounds: SIMD2<Float>(0.5, 0.5)));
         let planeMesh = MeshResource.generatePlane(width: 0.841, depth: 1.189, cornerRadius: 0);
@@ -96,23 +118,36 @@ struct ImmersiveView: View {
         return headAnchor;
     }()
     
+    @State private var gptEntity: Entity = {
+        let tmpEntity = Entity();
+        tmpEntity.position = [-0.7, 0, -0.01];
+        tmpEntity.orientation = simd_quatf(angle: -.pi / 2, axis: SIMD3<Float>(1, 0, 0));
+        return tmpEntity;
+    } ()
+    
     @State private var controlButtonGroupEntity: Entity = {
         let headAnchor = AnchorEntity(.head)
         headAnchor.position = [0, 0, -0.5]
         return headAnchor;
     }()
     
+    @State private var gptButtonEntity: Entity = {
+        let tmpEntity = Entity();
+        tmpEntity.position = [-0.7, 0, -0.01];
+        tmpEntity.orientation = simd_quatf(angle: -.pi / 2, axis: SIMD3<Float>(1, 0, 0));
+        return tmpEntity;
+    } ()
+    
 
     @State private var backUrl = "http://10.4.128.60:5025/highlight";
     
     
-    
+    // MARK: View Start
     var body: some View {
         RealityView { content, attachments  in
 //            ImmersiveView.drawPart(entity: posterEntity)
             posterEntity.addChild(addKeywords(keywords: ["Coulomb's Law", "Electrostatic Interactions", "Dielectric Spheres", "Like-charge Attraction", "Electrostatics", "Opposite-charge Repulsion"], startPosition: SIMD3<Float>(-0.9, 0.01, -0.65)))
             
-            print("111")
             
             // 获取高亮区域数据
             fetchHighlights()
@@ -125,6 +160,16 @@ struct ImmersiveView: View {
 //            self.paperEntity = paperEntity
             
             content.add(paperEntity)
+            
+            
+//            guard let changePageButtonEntity = attachments.entity(for: "changePage") else { return };
+//            changePageButtonEntity.position = SIMD3<Float>(0, -0.2, 0);
+//            pdfEntity.addChild(changePageButtonEntity);
+            guard let gptSpace = attachments.entity(for: "gptSpace") else { return };
+//            gptSpace.position = SIM
+            gptEntity.addChild(gptSpace);
+            posterEntity.addChild(gptEntity);
+            
             
             Task {
                 await loadPDF()
@@ -228,65 +273,101 @@ struct ImmersiveView: View {
             pdfEntity.isEnabled = showPDF;
             demoEntity.isEnabled = showVideo;
         } attachments: {
+            // MARK: Attachment Space
             Attachment(id: "gptSpace") {
-                VStack(spacing: 20) {
-                    Text("🎯 GPT Assistant")
-                        .font(.largeTitle)
-                        .bold()
-
-                    TextField("请输入问题", text: $prompt)
-                        .textFieldStyle(.roundedBorder)
-                        .padding(.horizontal)
-
-                    HStack(spacing: 20) {
-                        Button(action: {
-                            isLoading = true
-                            callMyGPTAPI(prompt: prompt) { result in
-                                DispatchQueue.main.async {
-                                    reply = result ?? "⚠️ 获取回答失败"
-                                    isLoading = false
-                                }
-                            }
-                        }) {
-                            Text("Ask GPT")
+//                ZStack {
+//                    Color(.systemGray6) // 淡灰色背景
+//                        .ignoresSafeArea() // 全屏覆盖 Attachment 区域
+//                        .opacity(0.4)
+                    VStack(spacing: 20) {
+                        Text("🎯 GPT Assistant")
+                            .font(.largeTitle)
+                            .bold()
+                        
+                        
+//                        HStack(spacing: 20) {
+//                            
+//                            TextField("请输入问题", text: $prompt)
+//                                .textFieldStyle(.roundedBorder)
+//                                .padding(.horizontal)
+//    //                            .background(Color.white.opacity(0.5))
+//                                .clipShape(RoundedRectangle(cornerRadius: 10))
+//                            Button(action: {
+//                                isLoading = true
+//                                callMyGPTAPI(prompt: prompt) { result in
+//                                    DispatchQueue.main.async {
+//                                        reply = result ?? "⚠️ 获取回答失败"
+//                                        isLoading = false
+//                                    }
+//                                }
+//                            }) {
+//                                Text("Ask GPT")
+//                                    .padding()
+//                                    .background(Color.blue)
+//                                    .foregroundColor(.white)
+//                                    .cornerRadius(10)
+//                            }
+//                            .disabled(isLoading || prompt.isEmpty)
+//                            
+//                            Button(action: {
+//                                isRecording ? stopSpeechRecognition() : startSpeechRecognition()
+//                            }) {
+//                                ZStack {
+//                                    Circle()
+//                                        .fill(isRecording ? Color.red : Color.green)
+//                                        .frame(width: 50, height: 50)
+//                                    
+//                                    if isRecording {
+//                                        ProgressView()
+//                                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+//                                    } else {
+//                                        Image(systemName: "mic")
+//                                            .foregroundColor(.white)
+//                                    }
+//                                }
+//                            }
+//                        }
+                        
+                        if isLoading {
+                            ProgressView()
+                        } else {
+                            Text(reply)
+                                .font(.title3)
                                 .padding()
-                                .background(Color.blue)
-                                .foregroundColor(.white)
-                                .cornerRadius(10)
+                                .multilineTextAlignment(.center)
                         }
-                        .disabled(isLoading || prompt.isEmpty)
-
-                        Button(action: {
-                            isRecording ? stopSpeechRecognition() : startSpeechRecognition()
-                        }) {
-                            ZStack {
-                                Circle()
-                                    .fill(isRecording ? Color.red : Color.green)
-                                    .frame(width: 50, height: 50)
-
-                                if isRecording {
-                                    ProgressView()
-                                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                } else {
-                                    Image(systemName: "mic")
-                                        .foregroundColor(.white)
+                        
+                        
+                        // 聊天记录滚动卡片
+                        ScrollView {
+                            VStack(alignment: .leading, spacing: 20) {
+                                ForEach(chatHistory.indices, id: \.self) { i in
+                                    ChatRow(chat: chatHistory[i])
+                                        .id(i)
                                 }
                             }
-                        }
-                    }
-
-                    if isLoading {
-                        ProgressView()
-                    } else {
-                        Text(reply)
-                            .font(.title3)
                             .padding()
-                            .multilineTextAlignment(.center)
-                    }
+                        }
+//                        .onChange(of: chatHistory.count) { _ in
+//                            if let lastID = chatHistory.last?.id {
+//                                withAnimation {
+//                                    proxy.scrollTo(lastID, anchor: .bottom)
+//                                }
+//                            }
+//                        }
+                        .frame(maxWidth: 600, maxHeight: 650)
+                        .background(Color(.systemGray6))
+                        .cornerRadius(16)
+                        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 4)
 
-                    Spacer()
-                }
-                .padding()
+                        
+                        Spacer()
+                    }
+                    .padding()
+                .frame(width: 700, height: 800)  // 👉 固定 GPT 区域的宽高
+                .background(Color(.systemGray5).opacity(0.5))
+                .cornerRadius(20)
+                .shadow(radius: 10)
             }
             ForEach(0..<miniButtonGroupData.count, id: \.self) { index in
                 Attachment(id: "mini\(index + 1)") {
@@ -628,6 +709,97 @@ struct ImmersiveView: View {
             }
         }.resume()
     }
+    
+    
+    // MARK: - 调用 GPT 接口
+    func callMyGPTAPI(prompt: String, completion: @escaping (String?) -> Void) {
+        guard let url = URL(string: "http://10.4.126.27:5025/chat") else {
+            completion(nil)
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let body: [String: String] = ["message": prompt]
+        request.httpBody = try? JSONEncoder().encode(body)
+
+        URLSession.shared.dataTask(with: request) { data, _, _ in
+            guard let data = data,
+                  let result = try? JSONDecoder().decode([String: String].self, from: data),
+                  let reply = result["reply"] else {
+                completion(nil)
+                return
+            }
+            completion(reply)
+        }.resume()
+    }
+
+    // MARK: - 启动语音识别
+    func startSpeechRecognition() {
+        SFSpeechRecognizer.requestAuthorization { authStatus in
+            guard authStatus == .authorized else {
+                print("未授权语音识别")
+                return
+            }
+
+            DispatchQueue.main.async {
+                if self.audioEngine.isRunning {
+                    self.audioEngine.stop()
+                    self.audioEngine.inputNode.removeTap(onBus: 0)
+                }
+
+                self.recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
+                guard let recognitionRequest = self.recognitionRequest else { return }
+
+                recognitionRequest.shouldReportPartialResults = true
+
+                self.recognitionTask = self.speechRecognizer?.recognitionTask(with: recognitionRequest) { result, error in
+                    DispatchQueue.main.async {
+                        if let result = result {
+                            self.prompt = result.bestTranscription.formattedString
+                        }
+                        if error != nil || (result?.isFinal ?? false) {
+                            self.stopSpeechRecognition()
+                        }
+                    }
+                }
+
+                let inputNode = self.audioEngine.inputNode
+                let recordingFormat = inputNode.outputFormat(forBus: 0)
+
+                inputNode.removeTap(onBus: 0)  // 防止多次 installTap
+                inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { buffer, _ in
+                    recognitionRequest.append(buffer)
+                }
+
+                do {
+                    self.audioEngine.prepare()
+                    try self.audioEngine.start()
+                    self.isRecording = true
+                } catch {
+                    print("无法启动 audioEngine: \(error.localizedDescription)")
+                    self.isRecording = false
+                }
+            }
+        }
+    }
+
+    // MARK: - 停止语音识别
+    func stopSpeechRecognition() {
+        DispatchQueue.main.async {
+            if self.audioEngine.isRunning {
+                self.audioEngine.stop()
+                self.audioEngine.inputNode.removeTap(onBus: 0)
+            }
+            self.recognitionRequest?.endAudio()
+            self.recognitionTask?.cancel()
+            self.recognitionRequest = nil
+            self.recognitionTask = nil
+            self.isRecording = false
+        }
+    }
 }
 
 func addKeywords(
@@ -764,6 +936,75 @@ func createCustomRectangle(
 
     return parent
 }
+
+
+
+//// ✅ 再建子视图 ChatRow
+//struct ChatRow: View {
+//    let chat: [String: String]
+//
+//    var body: some View {
+//        HStack(spacing: 5) {
+//            if chat["role"] == "user" {
+//                Image(systemName: "mic")
+//                    .foregroundColor(.white)
+//                Text(chat["content"] ?? "Something Wrong")
+//            } else {
+//                Text(chat["content"] ?? "Something Wrong")
+//                Image(systemName: "mic")
+//                    .foregroundColor(.white)
+//            }
+//        }
+//        .padding(8)
+//        .background(Color.white.opacity(0.2))
+//        .cornerRadius(8)
+//        .onAppear {
+//            print(chat["role"] ?? "qqqq")  // 调试用打印
+//        }
+//    }
+//}
+struct ChatRow: View {
+    let chat: [String: String]
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 20) {
+            if chat["role"] == "user" {
+                Image(systemName: "person.fill")
+                    .foregroundColor(.blue)
+                
+                Text(chat["content"] ?? "Something went wrong")
+                    .foregroundColor(.primary)
+                    .padding(12)
+                    .background(Color.gray)
+                    .cornerRadius(12)
+                    .shadow(color: .gray.opacity(0.2), radius: 5, x: 0, y: 2)
+
+            } else {
+                
+                Text(chat["content"] ?? "Something went wrong")
+                    .foregroundColor(.primary)
+                    .padding(12)
+                    .background(Color.gray)
+                    .cornerRadius(12)
+                    .shadow(color: .gray.opacity(0.2), radius: 5, x: 0, y: 2)
+
+                Image(systemName: "brain.head.profile")
+                    .foregroundColor(.green)
+            }
+
+            Spacer()
+        }
+        .padding(.horizontal, 10)
+    }
+}
+
+
+// ✅ 简单模型示例
+struct Chat {
+    let role: String  // "user" 或 "assistant"
+    let content: String
+}
+
 
 #Preview(immersionStyle: .mixed) {
     ImmersiveView()
