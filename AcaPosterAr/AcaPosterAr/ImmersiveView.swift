@@ -11,13 +11,14 @@ import RealityKitContent
 import PDFKit
 import AVKit
 import Speech
+import AVFoundation
 
 struct ImmersiveView: View {
     
     // MARK: Parameter Group
     @State private var showPDF = false
     @State private var showVideo = false
-    @State private var showQuestion = true
+    @State private var showQuestion = false
     @State private var showGptSpace = false
     
     @State private var highlightEntities: [Entity] = []
@@ -39,22 +40,30 @@ struct ImmersiveView: View {
     @State private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
     @State private var recognitionTask: SFSpeechRecognitionTask?
     @State private var chatHistory: [[String: String]] = [
-        [
-            "role": "user",
-            "content": "这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题"
-        ],
-        [
-            "role": "System",
-            "content": "这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题"
-        ],
-        [
-            "role": "user",
-            "content": "这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题"
-        ],
-        [
-            "role": "System",
-            "content": "这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题"
-        ]
+//        [
+//            "role": "user",
+//            "content": "这张海报主要讲了什么内容，不要太长，只需要一个简单的内容"
+//        ],
+//        [
+//            "role": "System",
+//            "content": "这张海报主要研究了在极化介质中两个带电介电球之间的静电相互作用机制，特别是通过有效偶极子分析揭示了在特定条件下（介质的介电常数大于两球的介电常数）可能出现的反向电荷排斥现象。"
+//        ]
+        // [
+        //     "role": "user",
+        //     "content": "这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题"
+        // ],
+        // [
+        //     "role": "System",
+        //     "content": "这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题"
+        // ],
+        // [
+        //     "role": "user",
+        //     "content": "这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题"
+        // ],
+        // [
+        //     "role": "System",
+        //     "content": "这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题这是一个很好很好的问题"
+        // ]
     ];
     
     private let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "zh-CN"))
@@ -64,23 +73,23 @@ struct ImmersiveView: View {
     @State private var miniButtonGroupData: [String: [String: Any]] = [
         "mini1": [
             "position": SIMD3<Float>(-0.35, 0, -0.27),
-            "page": 5
+            "page": 1
         ],
         "mini2": [
             "position": SIMD3<Float>(-0.35, 0, 0.083),
-            "page": 5
+            "page": 2
         ],
         "mini3": [
             "position": SIMD3<Float>(0.07, 0, -0.27),
-            "page": 5
+            "page": 4
         ],
         "mini4": [
             "position": SIMD3<Float>(0.07, 0, 0.164),
-            "page": 5
+            "page": 4
         ],
         "mini5": [
             "position": SIMD3<Float>(0.07, 0, 0.485),
-            "page": 5
+            "page": 12
         ],
     ]
     
@@ -107,7 +116,7 @@ struct ImmersiveView: View {
         let mesh = MeshResource.generatePlane(width: 0.21, height: 0.297)
                 
         let tmppdfEntity = ModelEntity(mesh: mesh, materials: [material])
-        tmppdfEntity.position = SIMD3<Float>(0, 0.18, -0.2)
+        tmppdfEntity.position = SIMD3<Float>(0, 0.25, -0.2)
         return tmppdfEntity;
     }()
     
@@ -140,7 +149,7 @@ struct ImmersiveView: View {
     } ()
     
 
-    @State private var backUrl = "http://10.4.128.60:5025/highlight";
+    @State private var backUrl = "http://10.4.126.27:5025";
     
     
     // MARK: View Start
@@ -245,25 +254,27 @@ struct ImmersiveView: View {
             
             // attachment: Button Group
             guard let buttonGroupEntity = attachments.entity(for: "buttonGroup") else { return };
-            buttonGroupEntity.position = SIMD3<Float>(0, -0.4, -0.42);
-//            buttonGroupEntity.orientation = simd_quatf(angle: -.pi / 2, axis: SIMD3<Float>(1, 0, 0))
-//            posterEntity.addChild(buttonGroupEntity)
+            buttonGroupEntity.position = SIMD3<Float>(0, -0.5, -0.42);
+            buttonGroupEntity.orientation = simd_quatf(angle: -15 * .pi / 180, axis: SIMD3<Float>(1, 0, 0))
+            posterEntity.addChild(buttonGroupEntity)
             controlButtonGroupEntity.addChild(buttonGroupEntity)
 //            ImmersiveView.rotateEntityAroundYAxis(entity: controlButtonGroupEntity, angle: 0)
-//            let rotation = simd_quatf(angle: 30 * .pi / 180, axis: [0, 1, 0])
+//            let rotation = simd_quatf(angle: -10 * .pi / 180, axis: [1, 0, 0])
 //            controlButtonGroupEntity.transform.rotation = rotation * controlButtonGroupEntity.transform.rotation
 
             content.add(controlButtonGroupEntity)
             
             guard let gptButtonGroupEntity = attachments.entity(for: "gptButtonGroup") else { return };
-            gptButtonGroupEntity.position = SIMD3<Float>(0, -0.3, -0.42);
+            gptButtonGroupEntity.position = SIMD3<Float>(0, -0.35, -0.42);
+            
+//            buttonGroupEntity.orientation = simd_quatf(angle: -10 * .pi / 180, axis: SIMD3<Float>(1, 0, 0))
             gptButtonEntity.addChild(gptButtonGroupEntity)
             
             content.add(gptButtonEntity)
             
             // attachment: Change Page Button
             guard let changePageButtonEntity = attachments.entity(for: "changePage") else { return };
-            changePageButtonEntity.position = SIMD3<Float>(0, -0.3, 0);
+            changePageButtonEntity.position = SIMD3<Float>(0, -0.18, 0);
             pdfEntity.addChild(changePageButtonEntity);
             
             // attachment: Mini Button Group
@@ -296,11 +307,22 @@ struct ImmersiveView: View {
                     HStack(spacing: 20) {
                         Button(action: {
                             isLoading = true
-                            callMyGPTAPI(prompt: prompt) { result in
+//                            prompt = "请简述这张海报"
+                            chatHistory.append([
+                                "role": "user",
+                                "content": prompt
+                            ])
+                            callMyGPTAPI(prompt: chatHistory) { result in
                                 DispatchQueue.main.async {
+                                    print(result as Any)
+                                    
                                     reply = result ?? "⚠️ 获取回答失败"
                                     isLoading = false
-                                }
+                                    chatHistory.append([
+                                        "role": "assistant",
+                                        "content": reply
+                                    ])
+                                  }
                             }
                         }) {
                             
@@ -365,9 +387,9 @@ struct ImmersiveView: View {
 //                            if showQuestion == false {
 //                                showQuestion.toggle();
 //                            }
-                            if showGptSpace == false {
+//                            if showGptSpace == false {
                                 showQuestion.toggle();
-                            }
+//                            }
                         } label: {
                             Image(systemName: "bubble.left.and.text.bubble.right.fill")
                                 .foregroundColor(.white)
@@ -402,7 +424,7 @@ struct ImmersiveView: View {
                                 showPDF.toggle();
                             }
                             if let document = pdfDocument, targetPage > 0, targetPage <= document.pageCount - 1  {
-                                currentPage = 5;
+                                currentPage = targetPage;
                                 Task {
                                     await updatePDFPage();
                                 }
@@ -416,7 +438,7 @@ struct ImmersiveView: View {
                         Button {
                             guard let targetPage = miniButtonGroupData["mini\(index + 1)"]?["page"] as? Int else { return };
                             if let document = pdfDocument, targetPage > 0, targetPage <= document.pageCount - 1  {
-                                currentPage = 5;
+                                currentPage = targetPage;
                                 Task {
                                     await updatePDFPage();
                                 }
@@ -518,14 +540,14 @@ struct ImmersiveView: View {
                     }
 //                    .buttonStyle(CustomButtonStyle())
                     
-                    Button {
-                        // 按钮4的功能
-                    } label: {
-                        Text("按钮4")
-                            .font(.system(size: 32, weight: .semibold))
-                            .frame(width: 90)
-                    }
-//                    .buttonStyle(CustomButtonStyle())
+//                    Button {
+//                        // 按钮4的功能
+//                    } label: {
+//                        Text("按钮4")
+//                            .font(.system(size: 32, weight: .semibold))
+//                            .frame(width: 90)
+//                    }
+////                    .buttonStyle(CustomButtonStyle())
                     
                     
                     Button {
@@ -762,8 +784,8 @@ struct ImmersiveView: View {
     
     
     // MARK: - 调用 GPT 接口
-    func callMyGPTAPI(prompt: String, completion: @escaping (String?) -> Void) {
-        guard let url = URL(string: "http://10.4.126.27:5025/chat") else {
+    func callMyGPTAPI(prompt: [[String: String]], completion: @escaping (String?) -> Void) {
+        guard let url = URL(string: "\(backUrl)/chat") else {
             completion(nil)
             return
         }
@@ -772,7 +794,7 @@ struct ImmersiveView: View {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        let body: [String: String] = ["message": prompt]
+        let body: [String: [[String: String]]] = ["message": prompt]
         request.httpBody = try? JSONEncoder().encode(body)
 
         URLSession.shared.dataTask(with: request) { data, _, _ in
@@ -848,6 +870,24 @@ struct ImmersiveView: View {
             self.recognitionRequest = nil
             self.recognitionTask = nil
             self.isRecording = false
+            
+            // 如果识别结果不为空，自动提交到 GPT
+            if !self.prompt.isEmpty {
+                self.isLoading = true
+                var updatedHistory = self.chatHistory
+                updatedHistory.append(["role": "user", "content": self.prompt])
+                self.chatHistory = updatedHistory
+                
+                self.callMyGPTAPI(prompt: updatedHistory) { reply in
+                    DispatchQueue.main.async {
+                        if let reply = reply {
+                            self.chatHistory.append(["role": "assistant", "content": reply])
+                            self.reply = reply
+                        }
+                        self.isLoading = false
+                    }
+                }
+            }
         }
     }
 }
@@ -989,30 +1029,6 @@ func createCustomRectangle(
 
 
 
-//// ✅ 再建子视图 ChatRow
-//struct ChatRow: View {
-//    let chat: [String: String]
-//
-//    var body: some View {
-//        HStack(spacing: 5) {
-//            if chat["role"] == "user" {
-//                Image(systemName: "mic")
-//                    .foregroundColor(.white)
-//                Text(chat["content"] ?? "Something Wrong")
-//            } else {
-//                Text(chat["content"] ?? "Something Wrong")
-//                Image(systemName: "mic")
-//                    .foregroundColor(.white)
-//            }
-//        }
-//        .padding(8)
-//        .background(Color.white.opacity(0.2))
-//        .cornerRadius(8)
-//        .onAppear {
-//            print(chat["role"] ?? "qqqq")  // 调试用打印
-//        }
-//    }
-//}
 struct ChatRow: View {
     let chat: [String: String]
 
@@ -1031,7 +1047,8 @@ struct ChatRow: View {
 
             } else {
                 
-                Text(chat["content"] ?? "Something went wrong")
+                Text(try! AttributedString(markdown: chat["content"] ?? "Something went wrong"))
+//                Text(chat["content"] ?? "Something went wrong")
                     .foregroundColor(.primary)
                     .padding(12)
                     .background(Color.gray)
