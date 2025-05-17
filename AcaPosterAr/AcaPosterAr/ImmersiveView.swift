@@ -17,7 +17,9 @@ struct ImmersiveView: View {
     // MARK: Parameter Group
     @State private var showPDF = false
     @State private var showVideo = false
-    @State private var showTextField = true
+    @State private var showQuestion = true
+    @State private var showGptSpace = false
+    
     @State private var highlightEntities: [Entity] = []
     @State private var currentPage = 0
     @State private var pdfDocument: PDFDocument?
@@ -132,10 +134,9 @@ struct ImmersiveView: View {
     }()
     
     @State private var gptButtonEntity: Entity = {
-        let tmpEntity = Entity();
-        tmpEntity.position = [-0.7, 0, -0.01];
-        tmpEntity.orientation = simd_quatf(angle: -.pi / 2, axis: SIMD3<Float>(1, 0, 0));
-        return tmpEntity;
+        let headAnchor = AnchorEntity(.head)
+        headAnchor.position = [0, 0, -0.5]
+        return headAnchor;
     } ()
     
 
@@ -150,7 +151,7 @@ struct ImmersiveView: View {
             
             
             // 获取高亮区域数据
-            fetchHighlights()
+//            fetchHighlights()
             
             content.add(posterEntity)
             
@@ -244,16 +245,25 @@ struct ImmersiveView: View {
             
             // attachment: Button Group
             guard let buttonGroupEntity = attachments.entity(for: "buttonGroup") else { return };
-            buttonGroupEntity.position = SIMD3<Float>(-0.54, 0, -0.42);
+            buttonGroupEntity.position = SIMD3<Float>(0, -0.4, -0.42);
 //            buttonGroupEntity.orientation = simd_quatf(angle: -.pi / 2, axis: SIMD3<Float>(1, 0, 0))
 //            posterEntity.addChild(buttonGroupEntity)
             controlButtonGroupEntity.addChild(buttonGroupEntity)
-            
+//            ImmersiveView.rotateEntityAroundYAxis(entity: controlButtonGroupEntity, angle: 0)
+//            let rotation = simd_quatf(angle: 30 * .pi / 180, axis: [0, 1, 0])
+//            controlButtonGroupEntity.transform.rotation = rotation * controlButtonGroupEntity.transform.rotation
+
             content.add(controlButtonGroupEntity)
+            
+            guard let gptButtonGroupEntity = attachments.entity(for: "gptButtonGroup") else { return };
+            gptButtonGroupEntity.position = SIMD3<Float>(0, -0.3, -0.42);
+            gptButtonEntity.addChild(gptButtonGroupEntity)
+            
+            content.add(gptButtonEntity)
             
             // attachment: Change Page Button
             guard let changePageButtonEntity = attachments.entity(for: "changePage") else { return };
-            changePageButtonEntity.position = SIMD3<Float>(0, -0.2, 0);
+            changePageButtonEntity.position = SIMD3<Float>(0, -0.3, 0);
             pdfEntity.addChild(changePageButtonEntity);
             
             // attachment: Mini Button Group
@@ -272,98 +282,111 @@ struct ImmersiveView: View {
         } update: { _, _ in
             pdfEntity.isEnabled = showPDF;
             demoEntity.isEnabled = showVideo;
+            gptButtonEntity.isEnabled = showQuestion;
+            gptEntity.isEnabled = showGptSpace;
         } attachments: {
             // MARK: Attachment Space
-            Attachment(id: "gptSpace") {
-//                ZStack {
-//                    Color(.systemGray6) // 淡灰色背景
-//                        .ignoresSafeArea() // 全屏覆盖 Attachment 区域
-//                        .opacity(0.4)
-                    VStack(spacing: 20) {
-                        Text("🎯 GPT Assistant")
-                            .font(.largeTitle)
-                            .bold()
-                        
-                        
-//                        HStack(spacing: 20) {
-//                            
-//                            TextField("请输入问题", text: $prompt)
-//                                .textFieldStyle(.roundedBorder)
-//                                .padding(.horizontal)
-//    //                            .background(Color.white.opacity(0.5))
-//                                .clipShape(RoundedRectangle(cornerRadius: 10))
-//                            Button(action: {
-//                                isLoading = true
-//                                callMyGPTAPI(prompt: prompt) { result in
-//                                    DispatchQueue.main.async {
-//                                        reply = result ?? "⚠️ 获取回答失败"
-//                                        isLoading = false
-//                                    }
-//                                }
-//                            }) {
-//                                Text("Ask GPT")
-//                                    .padding()
-//                                    .background(Color.blue)
-//                                    .foregroundColor(.white)
-//                                    .cornerRadius(10)
-//                            }
-//                            .disabled(isLoading || prompt.isEmpty)
-//                            
-//                            Button(action: {
-//                                isRecording ? stopSpeechRecognition() : startSpeechRecognition()
-//                            }) {
-//                                ZStack {
-//                                    Circle()
-//                                        .fill(isRecording ? Color.red : Color.green)
-//                                        .frame(width: 50, height: 50)
-//                                    
-//                                    if isRecording {
-//                                        ProgressView()
-//                                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
-//                                    } else {
-//                                        Image(systemName: "mic")
-//                                            .foregroundColor(.white)
-//                                    }
-//                                }
-//                            }
-//                        }
-                        
-                        if isLoading {
-                            ProgressView()
-                        } else {
-                            Text(reply)
-                                .font(.title3)
-                                .padding()
-                                .multilineTextAlignment(.center)
-                        }
-                        
-                        
-                        // 聊天记录滚动卡片
-                        ScrollView {
-                            VStack(alignment: .leading, spacing: 20) {
-                                ForEach(chatHistory.indices, id: \.self) { i in
-                                    ChatRow(chat: chatHistory[i])
-                                        .id(i)
+            Attachment(id: "gptButtonGroup") {
+                VStack(spacing: 20) {
+                    TextField("请输入问题", text: $prompt)
+                        .textFieldStyle(.roundedBorder)
+                        .padding(.horizontal)
+                        .frame(width: 400, height: 100)
+
+                    HStack(spacing: 20) {
+                        Button(action: {
+                            isLoading = true
+                            callMyGPTAPI(prompt: prompt) { result in
+                                DispatchQueue.main.async {
+                                    reply = result ?? "⚠️ 获取回答失败"
+                                    isLoading = false
                                 }
                             }
-                            .padding()
+                        }) {
+                            
+                            Image(systemName: "paperplane")
+                                .foregroundColor(.white)
                         }
-//                        .onChange(of: chatHistory.count) { _ in
-//                            if let lastID = chatHistory.last?.id {
-//                                withAnimation {
-//                                    proxy.scrollTo(lastID, anchor: .bottom)
-//                                }
-//                            }
-//                        }
-                        .frame(maxWidth: 600, maxHeight: 650)
-                        .background(Color(.systemGray6))
-                        .cornerRadius(16)
-                        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 4)
+                        .disabled(isLoading || prompt.isEmpty)
 
+                        Button(action: {
+                            isRecording ? stopSpeechRecognition() : startSpeechRecognition()
+                        }) {
+                            ZStack {
+
+                                if isRecording {
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                } else {
+                                    Image(systemName: "mic")
+                                        .foregroundColor(.white)
+                                }
+                            }
+                        }
                         
-                        Spacer()
+                        Button(action: {
+                            showQuestion.toggle()
+                        }) {
+                            Image(systemName: "xmark")
+                                .foregroundColor(.white)
+                        }
                     }
-                    .padding()
+                }
+                .padding()
+                .background(Color(.systemGray6))
+                .cornerRadius(20)
+                .shadow(radius: 10)
+                
+            }
+            Attachment(id: "gptSpace") {
+                VStack(spacing: 20) {
+                    Text("🎯 GPT Assistant")
+                        .font(.largeTitle)
+                        .bold()
+                    // 聊天记录滚动卡片
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 20) {
+                            ForEach(chatHistory.indices, id: \.self) { i in
+                                ChatRow(chat: chatHistory[i])
+                                    .id(i)
+                            }
+                        }
+                        .padding()
+                    }
+                    .frame(maxWidth: 600, maxHeight: 650)
+                    .background(Color(.systemGray6))
+                    .cornerRadius(16)
+                    .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 4)
+                    if isLoading {
+                        ProgressView()
+                    }
+                    HStack(spacing: 20) {
+                        Button{
+//                            if showQuestion == false {
+//                                showQuestion.toggle();
+//                            }
+                            if showGptSpace == false {
+                                showQuestion.toggle();
+                            }
+                        } label: {
+                            Image(systemName: "bubble.left.and.text.bubble.right.fill")
+                                .foregroundColor(.white)
+                        }
+                        Button{
+//                            if showQuestion == false {
+//                                showQuestion.toggle();
+//                            }
+//                            if showGptSpace == false {
+                                showGptSpace.toggle();
+//                            }
+                        } label: {
+                            Image(systemName: "xmark")
+                                .foregroundColor(.white)
+                        }
+                    }
+                    Spacer()
+                }
+                .padding()
                 .frame(width: 700, height: 800)  // 👉 固定 GPT 区域的宽高
                 .background(Color(.systemGray5).opacity(0.5))
                 .cornerRadius(20)
@@ -426,9 +449,9 @@ struct ImmersiveView: View {
                             showPDF.toggle();
                         }
                     } label: {
-                        Image("close")
+                        Image(systemName: "xmark")
                             .resizable()
-                            .frame(width: 32, height: 32)
+                            .frame(width: 28, height: 28)
                     }
                     Button {
                         if let document = pdfDocument, currentPage < document.pageCount - 1 {
@@ -445,7 +468,7 @@ struct ImmersiveView: View {
                 }
             }
             Attachment(id: "buttonGroup") {
-                VStack(spacing: 20) {
+                HStack(spacing: 20) {
                     Button {
                         showPDF.toggle()
                     } label: {
@@ -453,11 +476,10 @@ struct ImmersiveView: View {
                             Image("pdf")
                                 .resizable()
                                 .frame(width: 32, height: 32)
-                            Text("PDF")
+                            Text("Paper")
                                 .font(.system(size: 32, weight: .semibold))
                         }
                         .padding()
-                        .background(.ultraThinMaterial)
                         .clipShape(RoundedRectangle(cornerRadius: 10))
                     }
 //                    .buttonStyle(CustomButtonStyle())
@@ -473,17 +495,26 @@ struct ImmersiveView: View {
                                 .font(.system(size: 32, weight: .semibold))
                         }
                         .padding()
-                        .background(.ultraThinMaterial)
                         .clipShape(RoundedRectangle(cornerRadius: 10))
                     }
 //                    .buttonStyle(CustomButtonStyle())
                     
                     Button {
-                        // 按钮3的功能
+                        if (showGptSpace == false && showQuestion == false) || (showGptSpace == true && showQuestion == true) {
+                            showGptSpace.toggle();
+                            showQuestion.toggle();
+                        }
+                        
                     } label: {
-                        Text("按钮3")
-                            .font(.system(size: 32, weight: .semibold))
-                            .frame(width: 90)
+                        HStack {
+                            Image(systemName: "brain")
+                                .resizable()
+                                .frame(width: 32, height: 32)
+                            Text("Agent")
+                                .font(.system(size: 32, weight: .semibold))
+                        }
+                        .padding()
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
                     }
 //                    .buttonStyle(CustomButtonStyle())
                     
@@ -495,9 +526,28 @@ struct ImmersiveView: View {
                             .frame(width: 90)
                     }
 //                    .buttonStyle(CustomButtonStyle())
+                    
+                    
+                    Button {
+                        // 按钮4的功能
+                    } label: {
+                        HStack {
+                            Image(systemName: "power")
+                                .resizable()
+                                .frame(width: 32, height: 32)
+                                .foregroundStyle(.red)
+                            Text("End")
+                                .font(.system(size: 32, weight: .semibold))
+                                .foregroundStyle(.red)
+                        }
+                        .padding()
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                    }
+//                    .buttonStyle(CustomButtonStyle())
                 }
                 .padding()
-                .background(.ultraThinMaterial)
+//                .background(.ultraThinMaterial)
+                .background(Color(.systemGray3).opacity(0.5))
                 .cornerRadius(10)
             }
             Attachment(id: "VideoControls") {
@@ -540,7 +590,7 @@ struct ImmersiveView: View {
                             showVideo.toggle();
                         }
                     } label: {
-                        Image("close")
+                        Image(systemName: "xmark")
                             .resizable()
                             .frame(width: 32, height: 32)
                     }
