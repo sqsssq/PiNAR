@@ -3,14 +3,14 @@ Description:
 Author: error: git config user.name & please set dead value or install git
 Date: 2025-05-06 13:55:40
 LastEditors: Qing Shi
-LastEditTime: 2025-05-18 00:07:49
+LastEditTime: 2025-05-18 00:42:16
 '''
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 # import openai
 from openai import OpenAI
 import time
-
+import os
 import base64
 from dashscope import MultiModalConversation
 from http import HTTPStatus
@@ -112,22 +112,30 @@ def summarize_chat_history_with_gpt(chat_history):
         str: 整理和总结后的内容。
     """
     prompt = "以下是用户和AI的对话记录，请根据这些对话生成一段总结，提取关键信息并以清晰的方式呈现：\n\n"
-    for user_message, bot_reply in chat_history:
-        prompt += f"用户: {user_message}\nAI: {bot_reply}\n\n"
-    prompt += "请根据以上对话生成一段总结："
+    
+    image_path = 'poster.png'  # 替换为你的图片路径 
+    image_base64 = load_image_base64(image_path)
+    messages = initialize_messages(image_base64, chat_history)
+    
+    messages.append({
+        "role": "user",
+        "content": [
+            {"text": prompt }
+        ]
+    })
 
     response = MultiModalConversation.call(
         model="qwen-vl-plus",
-        messages=[{"role": "user", "content": [{"text": prompt}]}]
+        messages=messages
     )
     if response.status_code == HTTPStatus.OK:
         summary = response.output.choices[0].message.content
-        return summary.strip()
+        return summary[0]["text"]
     else:
         print(f"❌ 出错了: {response.code} {response.message}")
         return "总结生成失败。"
 
-def generate_md_note_with_summary(image_path="poster.png", chat_history, output_path="note.md"):
+def generate_md_note_with_summary(image_path, chat_history, output_path="note.md"):
     """
     生成 Markdown 格式的笔记，包含海报图片、聊天记录和 GPT 整理的总结。
 
@@ -138,19 +146,32 @@ def generate_md_note_with_summary(image_path="poster.png", chat_history, output_
     """
     if not os.path.exists(image_path):
         raise FileNotFoundError(f"图片路径不存在: {image_path}")
-    
+    print(111)
     # 将图片转换为 Markdown 格式
     image_md = f"![Poster Image]({image_path})\n\n"
 
     # 构造聊天记录的 Markdown 格式
-    chat_md = "## 聊天记录\n\n"
-    for user_message, bot_reply in chat_history:
-        chat_md += f"**用户**: {user_message}\n\n"
-        chat_md += f"**AI**: {bot_reply}\n\n"
+    chat_md = "## 记录\n\n"
+
+    image_path = 'poster.png'  # 替换为你的图片路径 
+    image_base64 = load_image_base64(image_path)
+    messages = initialize_messages(image_base64, chat_history)
+
+    img_f = 0
+    for message in messages:
+        if message["role"] == "user":
+            if img_f == 0:
+                img_f = 1
+                chat_md += f"**用户**: {message["content"][1]["text"]}\n\n"
+            else:
+                chat_md += f"**用户**: {message["content"][0]["text"]}\n\n"
+        elif message["role"] == "assistant":
+            chat_md += f"**AI**: {message["content"][0]["text"]}\n\n"
 
     # 使用 GPT 整理和总结聊天历史
     summary = summarize_chat_history_with_gpt(chat_history)
-    summary_md = "## 总结\n\n" + summary + "\n\n"
+    print("summary", summary)
+    summary_md = "## 总结\n\n**在此海报前观看讨论5分钟**\n\n" + summary + "\n\n"
 
     # 合并内容
     md_content = image_md + summary_md + chat_md
@@ -164,14 +185,19 @@ def generate_md_note_with_summary(image_path="poster.png", chat_history, output_
 @app.route('/generate_note', methods=['POST'])
 def generate_note():
     data = request.get_json()
-    chat_history = data.get("chat_history", [])
+    chat_history = data.get("message", [])
     image_path = data.get("image_path", "poster.png")
-    output_path = data.get("output_path", "note.md")
+    # 获取当前时间戳作为 UID
+    current_time = time.strftime("%Y%m%d%H%M%S", time.localtime())
+    output_format_path = f"note_{current_time}.md"
+    output_path = data.get("output_path", output_format_path)
+    print(chat_history, image_path, output_path)
 
     try:
         generate_md_note_with_summary(image_path, chat_history, output_path)
         return jsonify({"message": "Markdown 笔记已生成", "output_path": output_path})
     except Exception as e:
+        print(f"❌ 生成笔记时出错: {e}")
         return jsonify({"error": str(e)}), 500
 
 

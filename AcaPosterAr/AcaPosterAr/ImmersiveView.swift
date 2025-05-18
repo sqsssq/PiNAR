@@ -552,6 +552,12 @@ struct ImmersiveView: View {
                     
                     Button {
                         // 按钮4的功能
+                        callGenerateNote(prompt: chatHistory) { result in
+                            DispatchQueue.main.async {
+                                print(result as Any)
+                                
+                              }
+                        }
                     } label: {
                         HStack {
                             Image(systemName: "power")
@@ -786,6 +792,30 @@ struct ImmersiveView: View {
     // MARK: - 调用 GPT 接口
     func callMyGPTAPI(prompt: [[String: String]], completion: @escaping (String?) -> Void) {
         guard let url = URL(string: "\(backUrl)/chat") else {
+            completion(nil)
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let body: [String: [[String: String]]] = ["message": prompt]
+        request.httpBody = try? JSONEncoder().encode(body)
+
+        URLSession.shared.dataTask(with: request) { data, _, _ in
+            guard let data = data,
+                  let result = try? JSONDecoder().decode([String: String].self, from: data),
+                  let reply = result["reply"] else {
+                completion(nil)
+                return
+            }
+            completion(reply)
+        }.resume()
+    }
+    
+    func callGenerateNote(prompt: [[String: String]], completion: @escaping (String?) -> Void) {
+        guard let url = URL(string: "\(backUrl)/generate_note") else {
             completion(nil)
             return
         }
