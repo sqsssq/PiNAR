@@ -73,23 +73,23 @@ struct ImmersiveView: View {
     @State private var miniButtonGroupData: [String: [String: Any]] = [
         "mini1": [
             "position": SIMD3<Float>(-0.35, 0, -0.27),
-            "page": 1
+            "page": 0
         ],
         "mini2": [
             "position": SIMD3<Float>(-0.35, 0, 0.083),
-            "page": 2
+            "page": 1
         ],
         "mini3": [
             "position": SIMD3<Float>(0.07, 0, -0.27),
-            "page": 4
+            "page": 3
         ],
         "mini4": [
             "position": SIMD3<Float>(0.07, 0, 0.164),
-            "page": 4
+            "page": 3
         ],
         "mini5": [
             "position": SIMD3<Float>(0.07, 0, 0.485),
-            "page": 12
+            "page": 11
         ],
     ]
     
