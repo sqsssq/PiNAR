@@ -107,7 +107,7 @@ struct ImmersiveView: View {
     
     @State var paperEntity: Entity = {
         let headAnchor = AnchorEntity(.head);
-        headAnchor.position = [0, -0.35, -0.5];
+        headAnchor.position = [0, -0.2, -0.5];
         return headAnchor;
     }()
     
@@ -167,6 +167,7 @@ struct ImmersiveView: View {
                         
 //            pdfEntity.isEnabled = showPDF;
             paperEntity.addChild(pdfEntity)
+//            paperEntity.position = SIMD3<Float>(0, 0, 0)
 //            self.paperEntity = paperEntity
             
             content.add(paperEntity)
@@ -254,8 +255,9 @@ struct ImmersiveView: View {
             
             // attachment: Button Group
             guard let buttonGroupEntity = attachments.entity(for: "buttonGroup") else { return };
-            buttonGroupEntity.position = SIMD3<Float>(0, -0.5, -0.42);
-            buttonGroupEntity.orientation = simd_quatf(angle: -15 * .pi / 180, axis: SIMD3<Float>(1, 0, 0))
+            buttonGroupEntity.position = SIMD3<Float>(0, -0.3, -0.42);
+            
+//            buttonGroupEntity.orientation = simd_quatf(angle: -15 * .pi / 180, axis: SIMD3<Float>(1, 0, 0))
             posterEntity.addChild(buttonGroupEntity)
             controlButtonGroupEntity.addChild(buttonGroupEntity)
 //            ImmersiveView.rotateEntityAroundYAxis(entity: controlButtonGroupEntity, angle: 0)
@@ -265,8 +267,8 @@ struct ImmersiveView: View {
             content.add(controlButtonGroupEntity)
             
             guard let gptButtonGroupEntity = attachments.entity(for: "gptButtonGroup") else { return };
-            gptButtonGroupEntity.position = SIMD3<Float>(0, -0.35, -0.42);
-            
+            gptButtonGroupEntity.position = SIMD3<Float>(0, -0.18, -0.42);
+
 //            buttonGroupEntity.orientation = simd_quatf(angle: -10 * .pi / 180, axis: SIMD3<Float>(1, 0, 0))
             gptButtonEntity.addChild(gptButtonGroupEntity)
             
